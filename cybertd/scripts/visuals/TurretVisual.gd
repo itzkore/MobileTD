@@ -8,7 +8,8 @@ class_name TurretVisual
 @export var base_radius: float = 14.0
 @export var base_color: Color = Color(0.18, 0.18, 0.2)
 @export var ring_color: Color = Color(0.35, 0.35, 0.4)
-@export var details_color: Color = Color(0.6, 0.6, 0.65)
+@export var details_color: Color = Color(0.6, 0.6, 0.65) # Výchozí barva
+@export var custom_detail_color: Color = Color(1, 1, 1, 0) # Nová proměnná pro vlastní barvu (výchozí je průhledná)
 @export var twin_barrels: bool = false
 @export var splash_turret: bool = false
 @export var level: int = 1
@@ -30,11 +31,16 @@ func _process(delta: float) -> void:
 		queue_redraw()
 
 func _draw() -> void:
+	# Zvolíme barvu detailů - pokud je nastavena vlastní, použije se ta.
+	var final_details_color = details_color
+	if custom_detail_color.a > 0: # Použijeme vlastní barvu, jen pokud není průhledná
+		final_details_color = custom_detail_color
+
 	# Base plate
 	draw_circle(Vector2.ZERO, base_radius + 3, ring_color)
 	draw_circle(Vector2.ZERO, base_radius, base_color)
-	# Swivel ring highlights
-	draw_arc(Vector2.ZERO, base_radius * 0.8, deg_to_rad(-30), deg_to_rad(60), 24, details_color, 2.0)
+	# Swivel ring highlights - nyní s vlastní barvou
+	draw_arc(Vector2.ZERO, base_radius * 0.8, deg_to_rad(-30), deg_to_rad(60), 24, final_details_color, 2.0)
 	# Barrel(s)
 	var b_len := barrel_length
 	var b_w := barrel_width
@@ -62,22 +68,6 @@ func _draw_barrel(offset: Vector2, length: float, width: float, recoil: float = 
 	draw_colored_polygon(PackedVector2Array([p0, p1, p2, p3]), barrel_color)
 	# Muzzle ring
 	draw_rect(Rect2(offset + Vector2(length - 3 - rx, -width * 0.6), Vector2(3, width * 1.2)), muzzle_color)
-
-func get_muzzle_points_local() -> Array[Vector2]:
-	var points: Array[Vector2] = []
-	if splash_turret:
-		# Mortar fires from center top of the head
-		points.append(Vector2(0, 0))
-		return points
-	var b_len := barrel_length
-	var b_w := barrel_width
-	if twin_barrels:
-		# Spawn from the exact center of each barrel with a slight inward offset
-		points.append(Vector2(b_len - 1.0, -b_w * 0.7))
-		points.append(Vector2(b_len - 1.0, b_w * 0.7))
-	else:
-		points.append(Vector2(b_len - 1.0, 0))
-	return points
 
 func trigger_recoil(barrel_index: int, amount: float = -1.0) -> void:
 	var amt: float = recoil_default if amount < 0.0 else amount

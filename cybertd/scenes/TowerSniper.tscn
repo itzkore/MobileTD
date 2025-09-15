@@ -1,44 +1,40 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=3 format=3 uid="uid://c2w08444qg17g"]
 
-[ext_resource type="PackedScene" path="res://scenes/Bullet.tscn" id=1]
-[ext_resource type="Script" path="res://scripts/Tower.gd" id=2]
-[ext_resource type="Script" path="res://scripts/visuals/TurretVisual.gd" id=3]
+[ext_resource type="PackedScene" uid="uid://b7y165606k46" path="res://scenes/Tower.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/TowerSniper.gd" id="2_sniper"]
 
-[sub_resource type="CircleShape2D" id=1]
-radius = 220.0
-
-[node name="TowerSniper" type="Node2D"]
-z_index = 30
-script = ExtResource(2)
-fire_rate = 0.35
-bullet_speed = 700.0
-damage = 18
-splash_radius = 0.0
+[node name="TowerSniper" instance=ExtResource("1_base")]
+script = ExtResource("2_sniper")
+fire_rate = 0.4
+bullet_speed = 1200.0
+damage = 12
+armor_penetration = 10
+tower_range = 480.0
+turn_rate = 90.0
 bullet_trail = true
-recoil_amount = 5.0
+recoil_amount = 8.0
+build_cost = 18
+damage_per_level = 6
 
-[node name="Range" type="Area2D" parent="."]
-monitoring = true
-monitorable = true
-collision_mask = 1
+[node name="Range" parent="." index="1"]
+_edit_lock_ = true
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Range"]
-shape = SubResource(1)
+[node name="CollisionShape2D" parent="Range" index="0"]
+shape.radius = 120.0
 
-[node name="Sprite2D" type="Node2D" parent="."]
-z_index = 35
-input_pickable = true
+[node name="Sprite2D" parent="." index="2"]
+_edit_lock_ = true
 
-[node name="Visual" type="Node2D" parent="Sprite2D"]
-script = ExtResource(3)
-twin_barrels = false
-barrel_length = 46.0
+[node name="Visual" parent="Sprite2D" index="0"]
+barrel_length = 40.0
 barrel_width = 4.0
+twin_barrels = false
 
-[node name="ClickArea" type="Area2D" parent="."]
-input_pickable = true
-collision_layer = 4
-collision_mask = 0
+[node name="MuzzlePoint" type="Marker2D" parent="Sprite2D/Visual" index="0"]
+position = Vector2(40, 0)
 
-[node name="ClickShape" type="CollisionShape2D" parent="ClickArea"]
-shape = SubResource(1)
+[node name="ClickArea" parent="." index="3"]
+_edit_lock_ = true
+
+[node name="ClickShape" parent="ClickArea" index="0"]
+shape.radius = 24.0

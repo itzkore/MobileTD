@@ -1,0 +1,35 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/TowerCard.gd" id="1_card"]
+[ext_resource type="PackedScene" path="res://scenes/ui/TowerPreview.tscn" id="2_preview"]
+
+[node name="TowerCard" type="PanelContainer"]
+custom_minimum_size = Vector2(200, 100)
+script = ExtResource("1_card")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="TowerPreview" parent="HBoxContainer" instance=ExtResource("2_preview")]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameLabel" type="Label" parent="HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Tower Name"
+
+[node name="CostLabel" type="Label" parent="HBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "Cost: 100 G"
+
+[node name="StatsLabel" type="Label" parent="HBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "Dmg: 10 / Pen: 2"
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 2
+flat = true

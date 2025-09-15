@@ -1,0 +1,84 @@
+@tool
+extends Node
+
+## Automaticky importuje animace ze JSON souboru do AnimationPlayeru.
+##
+## Jak to použít:
+## 1. Přidejte tento skript na Node ve vaší scéně (např. na kořenový node vojáka).
+## 2. V inspektoru nastavte cesty k 'Sprite Node' a 'Animation Player'.
+## 3. Nastavte cestu k 'Atlas JSON File'.
+## 4. Klikněte na tlačítko 'Import Animations' v inspektoru.
+## 5. Animace se vytvoří. Skript můžete poté odebrat.
+
+@export var sprite_node: NodePath
+@export var animation_player: NodePath
+@export var atlas_json_file: String = "res://assets/sprites/infantry_atlas.json"
+
+# Proměnná _import_animations je dočasně zakomentována, aby se předešlo varování o nepoužití.
+# @export var _import_animations: bool = false:
+# 	set(value):
+# 		if value:
+# 			import_animations()
+
+func import_animations():
+	var sprite = get_node_or_null(sprite_node)
+	var anim_player = get_node_or_null(animation_player)
+
+	if not sprite:
+		printerr("AnimationImporter: Sprite node not found at path: ", sprite_node)
+		return
+	if not anim_player:
+		printerr("AnimationImporter: AnimationPlayer not found at path: ", animation_player)
+		return
+	if not FileAccess.file_exists(atlas_json_file):
+		printerr("AnimationImporter: JSON atlas file not found at path: ", atlas_json_file)
+		return
+
+	# Načtení a parsování JSON
+	var file = FileAccess.open(atlas_json_file, FileAccess.READ)
+	var json_data = JSON.parse_string(file.get_as_text())
+	file.close()
+
+	if not json_data:
+		printerr("AnimationImporter: Failed to parse JSON file.")
+		return
+
+	var meta = json_data["meta"]
+	var animations = json_data["animations"]
+	
+	# Nastavení sprite sheetu
+	sprite.hframes = meta["columns"]
+	var total_frames = sprite.hframes * (len(animations) * 8 / meta["columns"] + 1) # Heuristika
+	# Toto je třeba případně upravit podle skutečného počtu řádků
+	# sprite.vframes = ... 
+
+	print("Starting animation import...")
+	anim_player.clear_queue()
+	for anim_def in anim_player.get_animation_list():
+		anim_player.remove_animation(anim_def)
+
+	# Vytvoření animací
+	for anim_data in animations:
+		var anim_name = anim_data["name"]
+		var start_frame = anim_data["frames"]["start"]
+		var frame_count = anim_data["frames"]["count"]
+		var fps = anim_data["fps"]
+		var loop = anim_data["loop"]
+
+		var new_anim = Animation.new()
+		new_anim.loop_mode = Animation.LOOP_LINEAR if loop else Animation.LOOP_NONE
+		new_anim.length = float(frame_count) / fps
+		
+		var track_idx = new_anim.add_track(Animation.TYPE_VALUE)
+		new_anim.track_set_path(track_idx, str(sprite_node) + ":frame")
+
+		var time = 0.0
+		for i in range(frame_count):
+			new_anim.track_insert_key(track_idx, time, start_frame + i)
+			time += 1.0 / fps
+		
+		anim_player.add_animation(anim_name, new_anim)
+		print("Created animation: '", anim_name, "'")
+
+	print("Animation import finished successfully.")
+

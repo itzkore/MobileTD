@@ -5,7 +5,7 @@
 [ext_resource type="Script" path="res://scripts/visuals/TurretVisual.gd" id=3]
 
 [sub_resource type="CircleShape2D" id=1]
-radius = 76.0
+radius = 152.0
 
 [node name="TowerRapid" type="Node2D"]
 z_index = 30
@@ -13,6 +13,9 @@ script = ExtResource(2)
 fire_rate = 3.4
 bullet_speed = 340.0
 damage = 2
+armor_penetration = 1
+tower_range = 152.0
+turn_rate = 360.0
 splash_radius = 0.0
 
 [node name="Range" type="Area2D" parent="."]
@@ -28,8 +31,15 @@ z_index = 35
 input_pickable = true
 
 [node name="Visual" type="Node2D" parent="Sprite2D"]
-script = ExtResource(3)
+script = ExtResource("3")
+custom_detail_color = Color(0.9, 0.8, 0.2, 1)
 twin_barrels = true
+
+[node name="MuzzlePoint" type="Marker2D" parent="Sprite2D/Visual"]
+position = Vector2(26, -4.2)
+
+[node name="MuzzlePoint2" type="Marker2D" parent="Sprite2D/Visual"]
+position = Vector2(26, 4.2)
 
 [node name="ClickArea" type="Area2D" parent="."]
 input_pickable = true
@@ -37,4 +47,5 @@ collision_layer = 4
 collision_mask = 0
 
 [node name="ClickShape" type="CollisionShape2D" parent="ClickArea"]
-shape = SubResource(1)
+shape = SubResource("1")
+shape.radius = 24.0

@@ -10,6 +10,7 @@ extends Node2D
 @onready var grid_painter: Node2D = $GridPainter
 
 var enemy_scene: PackedScene
+var juggernaut_scene: PackedScene
 var tower_scene: PackedScene
 const BuildSpotClass = preload("res://scripts/BuildSpot.gd")
 
@@ -21,6 +22,7 @@ const GRID_OFFSET: Vector2 = Vector2(0, 0)
 var wave_index: int = 0
 var lives: int = 20
 var gold: int = 20
+var wave_clear_bonus: int = 5 # Odměna za vyčištění vlny
 var enemies_to_spawn: int = 0
 var enemies_alive: int = 0
 var next_wave_timer: Timer
@@ -32,41 +34,62 @@ var ImpactEffectScene: PackedScene = preload("res://scenes/ImpactEffect.tscn")
 @onready var camera: Camera2D = $Camera2D
 var screenshake_on_kill: bool = false
 
-# Build selection
-var selected_build: String = "rapid"
-var tower_scenes := {
-	"rapid": preload("res://scenes/TowerRapid.tscn"),
-	"sniper": preload("res://scenes/TowerSniper.tscn"),
-	"splash": preload("res://scenes/TowerSplash.tscn"),
+# Build selection - JEDINÝ ZDROJ PRAVDY PRO DATA O VĚŽÍCH
+var tower_definitions := {
+	"rapid": {
+		"scene": preload("res://scenes/TowerRapid.tscn"),
+		"cost": 10, "name": "Rapid Tower", "damage": 2, "armor_penetration": 1,
+		"visual_config": {
+			"custom_detail_color": Color(0.9, 0.8, 0.2, 1),
+			"twin_barrels": true
+		}
+	},
+	"sniper": {
+		"scene": preload("res://scenes/TowerSniper.tscn"),
+		"cost": 18, "name": "Sniper Tower", "damage": 12, "armor_penetration": 10,
+		"visual_config": {
+			"custom_detail_color": Color(0.9, 0.2, 0.2, 1),
+			"barrel_length": 40.0, "barrel_width": 4.0, "twin_barrels": false
+		}
+	},
+	"splash": {
+		"scene": preload("res://scenes/TowerSplash.tscn"),
+		"cost": 14, "name": "Splash Tower", "damage": 3, "armor_penetration": 0,
+		"visual_config": {
+			"custom_detail_color": Color(0.2, 0.6, 0.9, 1),
+			"splash_turret": true, "barrel_length": 18.0, "barrel_width": 8.0
+		}
+	}
 }
-var tower_costs := {"rapid": 10, "sniper": 18, "splash": 14}
+var selected_build: String = "rapid"
 
-# Wave config: pairs of (count, speed, health, reward)
+# Wave config: (count, speed, health, reward, armor, juggernauts)
 var waves := [
-	{"count": 6,  "speed": 40.0, "health": 10, "reward": 2},
-	{"count": 8,  "speed": 42.0, "health": 12, "reward": 2},
-	{"count": 10, "speed": 44.0, "health": 14, "reward": 3},
-	{"count": 10, "speed": 46.0, "health": 16, "reward": 3},
-	{"count": 12, "speed": 48.0, "health": 18, "reward": 3},
-	{"count": 12, "speed": 50.0, "health": 22, "reward": 3},
-	{"count": 14, "speed": 52.0, "health": 24, "reward": 4},
-	{"count": 14, "speed": 54.0, "health": 28, "reward": 4},
-	{"count": 16, "speed": 56.0, "health": 30, "reward": 4},
-	{"count": 16, "speed": 58.0, "health": 34, "reward": 4},
-	{"count": 18, "speed": 60.0, "health": 36, "reward": 5},
-	{"count": 18, "speed": 62.0, "health": 40, "reward": 5},
-	{"count": 20, "speed": 64.0, "health": 44, "reward": 5},
-	{"count": 20, "speed": 66.0, "health": 48, "reward": 5},
-	{"count": 22, "speed": 68.0, "health": 52, "reward": 6},
-	{"count": 22, "speed": 70.0, "health": 56, "reward": 6},
-	{"count": 24, "speed": 72.0, "health": 60, "reward": 6},
-	{"count": 24, "speed": 74.0, "health": 66, "reward": 6},
-	{"count": 26, "speed": 76.0, "health": 72, "reward": 7},
-	{"count": 28, "speed": 80.0, "health": 80, "reward": 8},
+	{"count": 6,  "speed": 24.0, "health": 10, "reward": 2, "armor": 0},
+	{"count": 8,  "speed": 25.2, "health": 12, "reward": 2, "armor": 0},
+	{"count": 10, "speed": 26.4, "health": 14, "reward": 3, "armor": 1},
+	{"count": 10, "speed": 27.6, "health": 16, "reward": 3, "armor": 1},
+	{"count": 12, "speed": 28.8, "health": 18, "reward": 3, "armor": 2, "juggernauts": 1}, # První Juggernaut
+	{"count": 12, "speed": 30.0, "health": 22, "reward": 3, "armor": 2},
+	{"count": 14, "speed": 31.2, "health": 24, "reward": 4, "armor": 3},
+	{"count": 14, "speed": 32.4, "health": 28, "reward": 4, "armor": 3},
+	{"count": 16, "speed": 33.6, "health": 30, "reward": 4, "armor": 4},
+	{"count": 16, "speed": 34.8, "health": 34, "reward": 4, "armor": 4, "juggernauts": 2}, # Dva Juggernauti
+	{"count": 18, "speed": 36.0, "health": 36, "reward": 5, "armor": 5},
+	{"count": 18, "speed": 37.2, "health": 40, "reward": 5, "armor": 5},
+	{"count": 20, "speed": 38.4, "health": 44, "reward": 5, "armor": 6},
+	{"count": 20, "speed": 39.6, "health": 48, "reward": 5, "armor": 6},
+	{"count": 22, "speed": 40.8, "health": 52, "reward": 6, "armor": 7, "juggernauts": 3}, # Tři Juggernauti
+	{"count": 22, "speed": 42.0, "health": 56, "reward": 6, "armor": 7},
+	{"count": 24, "speed": 43.2, "health": 60, "reward": 6, "armor": 8},
+	{"count": 24, "speed": 44.4, "health": 66, "reward": 6, "armor": 8},
+	{"count": 26, "speed": 45.6, "health": 72, "reward": 7, "armor": 9},
+	{"count": 28, "speed": 48.0, "health": 80, "reward": 8, "armor": 10, "juggernauts": 4}, # Finální vlna s Juggernauty
 ]
 
 func _ready() -> void:
 	enemy_scene = load("res://scenes/Enemy.tscn")
+	juggernaut_scene = load("res://scenes/EnemyJuggernaut.tscn")
 	tower_scene = load("res://scenes/Tower.tscn")
 	spawn_timer.timeout.connect(_on_spawn_timer_timeout)
 	bullets_container.add_to_group("bullets")
@@ -83,6 +106,10 @@ func _ready() -> void:
 		if wave_index < waves.size():
 			_on_start_wave_pressed()
 	)
+	# Propojíme časovač s HUDem
+	if hud and "next_wave_timer" in hud:
+		hud.next_wave_timer = next_wave_timer
+		
 	# Start with panel hidden; show only on selection
 	if right_panel and right_panel.has_method("close_panel"):
 		right_panel.close_panel()
@@ -132,8 +159,16 @@ func _hud_enable(enabled: bool, text: String) -> void:
 func _on_start_wave_pressed() -> void:
 	if wave_index >= waves.size():
 		return
+	
+	# Zastavíme časovač, pokud byl spuštěn
+	if is_instance_valid(next_wave_timer) and not next_wave_timer.is_stopped():
+		next_wave_timer.stop()
+		
 	var w = waves[wave_index]
-	enemies_to_spawn = int(w["count"])
+	enemies_to_spawn = int(w.get("count", 0))
+	# Přidáme Juggernauty do celkového počtu
+	enemies_to_spawn += int(w.get("juggernauts", 0))
+	
 	enemies_alive = 0
 	spawn_timer.wait_time = 1.4
 	spawn_timer.start()
@@ -142,21 +177,39 @@ func _on_start_wave_pressed() -> void:
 
 func _on_spawn_timer_timeout() -> void:
 	if enemies_to_spawn > 0:
-		_spawn_enemy_for_wave(waves[wave_index])
+		var wave_data = waves[wave_index]
+		var juggernauts_in_wave = int(wave_data.get("juggernauts", 0))
+		var soldiers_in_wave = int(wave_data.get("count", 0))
+		
+		# Rozhodneme, zda spawnout Juggernauta nebo vojáka
+		# Spawnujeme Juggernauty rovnoměrně během vlny
+		var spawn_juggernaut = false
+		if juggernauts_in_wave > 0:
+			var total_enemies = soldiers_in_wave + juggernauts_in_wave
+			var spawn_interval = total_enemies / juggernauts_in_wave
+			if (total_enemies - enemies_to_spawn) % spawn_interval == 0:
+				spawn_juggernaut = true
+
+		if spawn_juggernaut:
+			_spawn_enemy(juggernaut_scene, wave_data)
+		else:
+			_spawn_enemy(enemy_scene, wave_data)
+			
 		enemies_to_spawn -= 1
 		if enemies_to_spawn == 0:
 			spawn_timer.stop()
 			_hud_enable(false, "Wave Running")
 
-func _spawn_enemy_for_wave(wave: Dictionary) -> void:
-	if enemy_scene == null:
+func _spawn_enemy(scene: PackedScene, wave: Dictionary) -> void:
+	if scene == null:
 		return
-	var e = enemy_scene.instantiate()
+	var e = scene.instantiate()
 	# Initialize stats BEFORE adding to the tree so _ready doesn't set health from old max
 	e.speed = float(wave.get("speed", 120.0))
 	e.max_health = int(wave.get("health", 10))
 	e.health = e.max_health
 	e.reward_gold = int(wave.get("reward", 2))
+	e.armor = int(wave.get("armor", 0))
 	path.add_child(e)
 	e.reset_on_spawn(e.speed)
 	enemies_alive += 1
@@ -176,7 +229,7 @@ func _on_enemy_escaped(_e) -> void:
 func _on_enemy_died(e) -> void:
 	enemies_alive = max(0, enemies_alive - 1)
 	gold += int(e.reward_gold)
-	_spawn_effect_impact((e as Node2D).global_position)
+	_spawn_effect_impact((e as Node2D).global_position, Vector2.UP, 1.2) # Větší efekt při smrti
 	if screenshake_on_kill:
 		_shake_camera(0.12, 5.0)
 	_hud_set()
@@ -186,7 +239,7 @@ func _on_enemy_died(e) -> void:
 func _on_enemy_damaged(amount: int, e) -> void:
 	var pos := (e as Node2D).global_position + Vector2(0, -20)
 	_spawn_floating_text("-%d" % amount, pos, Color(1, 0.8, 0.4, 1))
-	_spawn_effect_impact((e as Node2D).global_position)
+	# Poznámka: Efekt zásahu se nyní spawnuje ze střely (Bullet.gd), ne zde.
 
 func _check_wave_end() -> void:
 	if enemies_to_spawn == 0 and enemies_alive == 0:
@@ -194,6 +247,11 @@ func _check_wave_end() -> void:
 			if hud and hud.has_method("show_state"):
 				hud.show_state("Defeat! Press Esc for Menu")
 			return
+		
+		# Přidáme odměnu za vlnu
+		gold += wave_clear_bonus
+		_hud_set() # Aktualizujeme HUD se zlatem
+		
 		wave_index += 1
 		_hud_set()
 		if wave_index >= waves.size():
@@ -201,7 +259,7 @@ func _check_wave_end() -> void:
 				hud.show_state("Victory! Press Esc for Menu")
 			_hud_enable(false, "Done")
 		else:
-			_hud_enable(false, "Wave Running")
+			_hud_enable(true, "Next Wave") # Zobrazíme tlačítko
 			# Auto-start next wave in 5 seconds
 			if is_instance_valid(next_wave_timer):
 				next_wave_timer.start(5.0)
@@ -215,19 +273,18 @@ func _hud_set_enemies_left(n: int) -> void:
 func _on_build_requested(spot: Node) -> void:
 	_pending_spot = spot
 	if right_panel and right_panel.has_method("open_build"):
-		right_panel.open_build(tower_costs)
+		right_panel.open_build(tower_definitions)
 
 func _on_build_selected(t: String) -> void:
 	selected_build = t
 	if _pending_spot:
-		var scene: PackedScene = tower_scenes.get(selected_build, null)
-		var cost: int = tower_costs.get(selected_build, 10)
-		if gold >= cost and scene != null:
-			var tower: Node2D = scene.instantiate()
+		var tower_def = tower_definitions.get(selected_build)
+		if gold >= tower_def.cost and tower_def.scene != null:
+			var tower: Node2D = tower_def.scene.instantiate()
 			if _pending_spot is Node2D:
 				tower.global_position = (_pending_spot as Node2D).global_position
 			towers_container.add_child(tower)
-			gold -= cost
+			gold -= tower_def.cost
 			_hud_set()
 			if _pending_spot is BuildSpotClass:
 				(_pending_spot as BuildSpotClass).occupied = true
@@ -345,10 +402,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		if menu:
 			get_tree().change_scene_to_packed(menu)
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if not _try_build_at_mouse(event.position):
-			# Try selecting a tower by physics picking fallback
-			if not _try_select_tower_at_mouse(event.position):
-				# Empty click: clear selection
+		# Nejprve zkusíme vybrat novou věž
+		var tower_was_selected = _try_select_tower_at_mouse(event.position)
+		
+		# Pokud jsme nevybrali žádnou věž, zrušíme výběr
+		if not tower_was_selected:
+			# Ale ještě zkontrolujeme, jestli jsme neklikli na build spot
+			if not _try_build_at_mouse(event.position):
 				clear_selection()
 
 func _on_speed_changed(mult: float) -> void:
@@ -520,30 +580,24 @@ func _center_camera_on_path() -> void:
 	var center := (min_v + max_v) * 0.5
 	camera.position = center
 
-
 # ---- Effects helpers ----
-func _spawn_floating_text(text: String, pos: Vector2, col: Color = Color(1, 1, 1, 1)) -> void:
-	if FloatingTextScene == null or not is_instance_valid(effects_container):
+func _spawn_floating_text(text: String, pos: Vector2, color: Color) -> void:
+	if FloatingTextScene == null:
 		return
-	var n: Node2D = FloatingTextScene.instantiate()
-	(n as Node2D).global_position = pos
-	if n.has_method("setup"):
-		n.call("setup", text, pos, col)
-	effects_container.add_child(n)
+	var ft = FloatingTextScene.instantiate()
+	effects_container.add_child(ft)
+	if ft.has_method("setup"):
+		ft.setup(text, pos, color)
 
-func _spawn_effect_impact(pos: Vector2, dir: Vector2 = Vector2.ZERO, tint: Color = Color(0.75, 0.05, 0.05, 1.0)) -> void:
-	if ImpactEffectScene == null or not is_instance_valid(effects_container):
+func _spawn_effect_impact(pos: Vector2, direction: Vector2, p_scale: float = 1.0) -> void:
+	if ImpactEffectScene == null:
 		return
-	var n: Node2D = ImpactEffectScene.instantiate()
-	(n as Node2D).global_position = pos
-	if n.has_method("setup"):
-		n.call("setup", dir, tint)
-	effects_container.add_child(n)
+	var fx = ImpactEffectScene.instantiate()
+	effects_container.add_child(fx)
+	fx.global_position = pos
+	if fx.has_method("play_effect"):
+		fx.play_effect(direction, p_scale)
 
-func _shake_camera(time: float = 0.1, magnitude: float = 4.0) -> void:
-	if not is_instance_valid(camera):
-		return
-	var tween := create_tween()
-	tween.tween_property(camera, "offset", Vector2(magnitude, -magnitude), time * 0.25).from(Vector2.ZERO)
-	tween.tween_property(camera, "offset", Vector2(-magnitude, magnitude), time * 0.5)
-	tween.tween_property(camera, "offset", Vector2.ZERO, time * 0.25)
+func _shake_camera(duration: float, strength: float) -> void:
+	if camera and camera.has_method("shake"):
+		camera.shake(duration, strength)

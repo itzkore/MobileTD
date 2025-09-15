@@ -11,26 +11,37 @@ extends Node2D
 
 var _time: float = 0.0
 var _dir: Vector2 = Vector2.ZERO
+var _scale_effect: float = 1.0
 var _angles: PackedFloat32Array = []
 var _speeds: PackedFloat32Array = []
 var _sizes: PackedFloat32Array = []
 
-func setup(direction: Vector2 = Vector2.ZERO, tint: Color = Color(0.75, 0.05, 0.05, 1.0)) -> void:
+func play_effect(direction: Vector2, p_scale: float = 1.0) -> void:
 	_dir = direction.normalized()
-	color = tint
+	_scale_effect = p_scale
+	_init_particles()
 
-func _ready() -> void:
+func _init_particles():
 	var rnd := RandomNumberGenerator.new()
 	rnd.randomize()
-	var base_angle := 0.0
-	if _dir.length() > 0.001:
-		base_angle = _dir.angle()
-	for i in range(drops):
+	var base_angle := _dir.angle()
+	
+	var num_drops = int(drops * _scale_effect)
+	var speed_min_scaled = speed_min * _scale_effect
+	var speed_max_scaled = speed_max * _scale_effect
+	var size_min_scaled = size_min * _scale_effect
+	var size_max_scaled = size_max * _scale_effect
+
+	for i in range(num_drops):
 		var a := deg_to_rad(rnd.randf_range(-spread_degrees * 0.5, spread_degrees * 0.5)) + base_angle
 		_angles.append(a)
-		_speeds.append(rnd.randf_range(speed_min, speed_max))
-		_sizes.append(rnd.randf_range(size_min, size_max))
+		_speeds.append(rnd.randf_range(speed_min_scaled, speed_max_scaled))
+		_sizes.append(rnd.randf_range(size_min_scaled, size_max_scaled))
 	queue_redraw()
+
+func _ready() -> void:
+	# Initialization is now deferred to play_effect
+	pass
 
 func _process(delta: float) -> void:
 	_time += delta

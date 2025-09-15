@@ -2,9 +2,11 @@ extends Area2D
 
 var speed: float = 400.0
 var damage: int = 3
+var armor_penetration: int = 0
 var target: Node = null
 @export var splash_radius: float = 0.0
 @export var has_trail: bool = false
+var impact_scale: float = 1.0
 var _trail: Array[Vector2] = []
 var _trail_max: int = 10
 @export var width: float = 3.0
@@ -18,27 +20,55 @@ func _process(delta: float) -> void:
 	if target == null or not is_instance_valid(target):
 		queue_free()
 		return
-	var dir: Vector2 = (target.global_position - global_position).normalized()
+
+	var target_pos = target.global_position
+	var dir: Vector2 = (target_pos - global_position).normalized()
+	var distance_to_target = global_position.distance_to(target_pos)
+	var move_distance = speed * delta
+
+	# Robustní detekce zásahu pro rychlé střely
+	# Pokud je vzdálenost, kterou urazíme, větší než vzdálenost k cíli,
+	# znamená to, že jsme cíl v tomto snímku "přeskočili" a jedná se o zásah.
+	if move_distance >= distance_to_target:
+		_hit_target(target)
+		# Umístíme střelu přesně na cíl pro vizuální efekt
+		global_position = target_pos
+		return
+
+	# Standardní pohyb
 	rotation = dir.angle()
+	global_position += dir * move_distance
+
 	if has_trail:
 		_trail.append(global_position)
 		if _trail.size() > _trail_max:
 			_trail.pop_front()
 		queue_redraw()
-	global_position += dir * speed * delta
-	# Consider bullet visual length to avoid passing through
-	var hit_radius: float = max(6.0, length * 0.6)
-	if global_position.distance_to(target.global_position) < hit_radius:
-		if target.has_method("take_damage"):
-			target.take_damage(damage)
-			# Spawn a small impact effect at hit point if Main provides helper
-			var main = get_tree().current_scene
-			if main and main.has_method("_spawn_effect_impact"):
-				var hit_dir: Vector2 = (target.global_position - global_position).normalized()
-				main._spawn_effect_impact(global_position, hit_dir)
-		if splash_radius > 0.0:
-			_apply_splash_damage()
+
+func _hit_target(hit_node: Node) -> void:
+	var enemy_node = hit_node.get_parent()
+	if not is_instance_valid(enemy_node):
 		queue_free()
+		return
+
+	if enemy_node.has_method("take_damage"):
+		# Výpočet finálního poškození
+		var target_armor = enemy_node.get("armor") if "armor" in enemy_node else 0
+		var effective_armor = max(0, target_armor - armor_penetration)
+		var final_damage = max(1, damage - effective_armor) # Minimálně 1 poškození
+		
+		enemy_node.take_damage(final_damage)
+		
+		var main = get_tree().current_scene
+		if main and main.has_method("_spawn_effect_impact"):
+			# Použijeme pozici hitboxu pro efekt
+			var hit_dir: Vector2 = (hit_node.global_position - global_position).normalized()
+			main._spawn_effect_impact(hit_node.global_position, hit_dir, impact_scale)
+			
+	if splash_radius > 0.0:
+		_apply_splash_damage()
+		
+	queue_free()
 
 func _draw() -> void:
 	# Bullet body (capsule) pointing to the +X axis, rotation is applied via node rotation
@@ -73,4 +103,9 @@ func _apply_splash_damage() -> void:
 			continue
 		if e is Node2D and e.has_method("take_damage"):
 			if (e as Node2D).global_position.distance_to(global_position) <= splash_radius:
-				e.take_damage(damage)
+				# Výpočet finálního poškození pro splash
+				var target_armor = e.get("armor") if "armor" in e else 0
+				var effective_armor = max(0, target_armor - armor_penetration)
+				var final_damage = max(1, damage - effective_armor)
+				
+				e.take_damage(final_damage)

@@ -1,0 +1,26 @@
+{
+    "meta": {
+        "image": "infantry_spritesheet.png",
+        "frame_width": 64,
+        "frame_height": 64,
+        "columns": 16
+    },
+    "animations": [
+        { "name": "walk_s",  "frames": { "start": 0,  "count": 8 }, "fps": 10, "loop": true },
+        { "name": "walk_sw", "frames": { "start": 8,  "count": 8 }, "fps": 10, "loop": true },
+        { "name": "walk_w",  "frames": { "start": 16, "count": 8 }, "fps": 10, "loop": true },
+        { "name": "walk_nw", "frames": { "start": 24, "count": 8 }, "fps": 10, "loop": true },
+        { "name": "walk_n",  "frames": { "start": 32, "count": 8 }, "fps": 10, "loop": true },
+        { "name": "walk_ne", "frames": { "start": 40, "count": 8 }, "fps": 10, "loop": true },
+        { "name": "walk_e",  "frames": { "start": 48, "count": 8 }, "fps": 10, "loop": true },
+        { "name": "walk_se", "frames": { "start": 56, "count": 8 }, "fps": 10, "loop": true },
+        { "name": "idle_s",  "frames": { "start": 64, "count": 6 }, "fps": 8, "loop": true },
+        { "name": "idle_sw", "frames": { "start": 70, "count": 6 }, "fps": 8, "loop": true },
+        { "name": "idle_w",  "frames": { "start": 80, "count": 6 }, "fps": 8, "loop": true },
+        { "name": "idle_nw", "frames": { "start": 86, "count": 6 }, "fps": 8, "loop": true },
+        { "name": "idle_n",  "frames": { "start": 96, "count": 6 }, "fps": 8, "loop": true },
+        { "name": "idle_ne", "frames": { "start": 102,"count": 6 }, "fps": 8, "loop": true },
+        { "name": "idle_e",  "frames": { "start": 108,"count": 6 }, "fps": 8, "loop": true },
+        { "name": "idle_se", "frames": { "start": 114,"count": 6 }, "fps": 8, "loop": true }
+    ]
+}
