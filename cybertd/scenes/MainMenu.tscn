@@ -1,35 +1,36 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/MainMenu.gd" id=1]
+[ext_resource type="Script" path="res://scripts/MainMenu.gd" id="1"]
 
 [node name="MainMenu" type="Control"]
-script = ExtResource(1)
-layout_mode = 3
-anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Header" type="HBoxContainer" parent="."]
+anchor_right = 1.0
+custom_minimum_size = Vector2(0, 40)
+
+[node name="UserLabel" type="Label" parent="Header"]
+text = "User: Guest"
+
+[node name="GoldLabel" type="Label" parent="Header"]
+text = "Gold: 0"
 
 [node name="Center" type="CenterContainer" parent="."]
-layout_mode = 1
-anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 
 [node name="VBox" type="VBoxContainer" parent="Center"]
-alignment = 1
-theme_override_constants/separation = 16
 
-[node name="Title" type="Label" parent="Center/VBox"]
-text = "CyberTD"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 32
-
-[node name="PlayButton" type="Button" parent="Center/VBox"]
+[node name="Play" type="Button" parent="Center/VBox"]
 text = "Play"
 
-[node name="QuitButton" type="Button" parent="Center/VBox"]
+[node name="Codex" type="Button" parent="Center/VBox"]
+text = "Codex"
+
+[node name="Profile" type="Button" parent="Center/VBox"]
+text = "Profile"
+
+[node name="Quit" type="Button" parent="Center/VBox"]
 text = "Quit"

@@ -1,20 +1,13 @@
-; Engine configuration file.
-; It's best edited using the editor UI and not directly,
-; since the parameters that go here are not all obvious.
-;
-; Format:
-;   [section] ; section goes between []
-;   param=value ; assign values to parameters
-
-config_version=5
+[gd_resource type="ConfigFile" format=3]
 
 [application]
-
 config/name="CyberTD"
 run/main_scene="res://scenes/MainMenu.tscn"
 config/features=PackedStringArray("4.4", "Mobile")
 config/icon="res://icon.svg"
 
-[rendering]
+[autoload]
+Game="*res://scripts/core/Game.gd"
 
+[rendering]
 renderer/rendering_method="mobile"

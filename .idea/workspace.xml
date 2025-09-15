@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="NONE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="56f4298e-4335-40c4-86ed-911228f446d1" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/cybertd/.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/LICENSE" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/UIAnimationTesting.gd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/UIAnimationTesting.gd.uid" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/UIAnimationTesting.tscn" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/addons/godot_ui_animations/UIAnimationHandler.tscn" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/addons/godot_ui_animations/UiAnimationHandler.gd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/addons/godot_ui_animations/UiAnimationHandler.gd.uid" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/addons/godot_ui_animations/godot_ui_anims.gd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/addons/godot_ui_animations/godot_ui_anims.gd.uid" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/addons/godot_ui_animations/plugin.cfg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/icon.svg" beforeDir="false" afterPath="$PROJECT_DIR$/cybertd/icon.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/icon.svg.import" beforeDir="false" afterPath="$PROJECT_DIR$/cybertd/icon.svg.import" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/project.godot" beforeDir="false" afterPath="$PROJECT_DIR$/cybertd/project.godot" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/scenes/Bullet.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/cybertd/scenes/Bullet.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/scenes/Enemy.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/cybertd/scenes/Enemy.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/scenes/Main.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/cybertd/scenes/Main.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/scenes/MainMenu.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/cybertd/scenes/MainMenu.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/scenes/Tower.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/cybertd/scenes/Tower.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/scripts/Bullet.gd" beforeDir="false" afterPath="$PROJECT_DIR$/cybertd/scripts/Bullet.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/scripts/Bullet.gd.uid" beforeDir="false" afterPath="$PROJECT_DIR$/cybertd/scripts/Bullet.gd.uid" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/scripts/Enemy.gd" beforeDir="false" afterPath="$PROJECT_DIR$/cybertd/scripts/Enemy.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/scripts/Enemy.gd.uid" beforeDir="false" afterPath="$PROJECT_DIR$/cybertd/scripts/Enemy.gd.uid" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/scripts/Main.gd" beforeDir="false" afterPath="$PROJECT_DIR$/cybertd/scripts/Main.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/scripts/Main.gd.uid" beforeDir="false" afterPath="$PROJECT_DIR$/cybertd/scripts/Main.gd.uid" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/scripts/MainMenu.gd" beforeDir="false" afterPath="$PROJECT_DIR$/cybertd/scripts/MainMenu.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/scripts/MainMenu.gd.uid" beforeDir="false" afterPath="$PROJECT_DIR$/cybertd/scripts/MainMenu.gd.uid" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/scripts/Tower.gd" beforeDir="false" afterPath="$PROJECT_DIR$/cybertd/scripts/Tower.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/scripts/Tower.gd.uid" beforeDir="false" afterPath="$PROJECT_DIR$/cybertd/scripts/Tower.gd.uid" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/ui.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cybertd/ui.png.import" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 5
+}]]></component>
+  <component name="ProjectId" id="32jrbIDji91C7etyneR2LJJWE8N" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "C:/MobileTD"
+  }
+}]]></component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="56f4298e-4335-40c4-86ed-911228f446d1" name="Changes" comment="" />
+      <created>1757944893335</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1757944893335</updated>
+    </task>
+    <servers />
+  </component>
+</project>
