@@ -1,6 +1,7 @@
 extends Control
 
 signal start_wave_pressed
+signal speed_changed(mult: float)
 
 @onready var start_button: Button = $HUDFrame/Inner/StartWave
 @onready var state_panel: ColorRect = $State
@@ -9,11 +10,29 @@ signal start_wave_pressed
 @onready var wave_label_bottom: Label = $HUDFrame/Inner/WaveInfo
 @onready var lives_bottom: Label = $HUDFrame/Inner/LivesBottom
 @onready var gold_bottom: Label = $HUDFrame/Inner/GoldBottom
+@onready var speed1: Button = $HUDFrame/Inner/Speed1x
+@onready var speed2: Button = $HUDFrame/Inner/Speed2x
+@onready var speed3: Button = $HUDFrame/Inner/Speed3x
 
 func _ready() -> void:
     state_panel.visible = false
     start_button.pressed.connect(_on_start_pressed)
     set_enemies_left(0)
+    if is_instance_valid(speed1):
+        speed1.pressed.connect(_on_speed1)
+    if is_instance_valid(speed2):
+        speed2.pressed.connect(_on_speed2)
+    if is_instance_valid(speed3):
+        speed3.pressed.connect(_on_speed3)
+
+func _on_speed1() -> void:
+    speed_changed.emit(1.0)
+
+func _on_speed2() -> void:
+    speed_changed.emit(2.0)
+
+func _on_speed3() -> void:
+    speed_changed.emit(3.0)
 
 func _on_start_pressed() -> void:
     start_wave_pressed.emit()

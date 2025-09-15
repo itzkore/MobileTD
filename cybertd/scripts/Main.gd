@@ -25,6 +25,13 @@ var enemies_to_spawn: int = 0
 var enemies_alive: int = 0
 var next_wave_timer: Timer
 
+# Effects
+var FloatingTextScene: PackedScene = preload("res://scenes/FloatingText.tscn")
+var ImpactEffectScene: PackedScene = preload("res://scenes/ImpactEffect.tscn")
+@onready var effects_container: Node2D = $Effects
+@onready var camera: Camera2D = $Camera2D
+var screenshake_on_kill: bool = false
+
 # Build selection
 var selected_build: String = "rapid"
 var tower_scenes := {
@@ -94,6 +101,10 @@ func _hud_set() -> void:
 		if hud.start_wave_pressed.is_connected(_on_start_wave_pressed):
 			hud.start_wave_pressed.disconnect(_on_start_wave_pressed)
 		hud.start_wave_pressed.connect(_on_start_wave_pressed)
+	if hud and hud.has_signal("speed_changed"):
+		if hud.speed_changed.is_connected(_on_speed_changed):
+			hud.speed_changed.disconnect(_on_speed_changed)
+		hud.speed_changed.connect(_on_speed_changed)
 	if hud and hud.has_signal("build_selected"):
 		if hud.build_selected.is_connected(_on_build_selected):
 			hud.build_selected.disconnect(_on_build_selected)
@@ -152,6 +163,8 @@ func _spawn_enemy_for_wave(wave: Dictionary) -> void:
 	_hud_set_enemies_left(enemies_to_spawn + enemies_alive)
 	e.escaped.connect(_on_enemy_escaped.bind(e))
 	e.died.connect(_on_enemy_died.bind(e))
+	if e.has_signal("damaged"):
+		e.damaged.connect(_on_enemy_damaged.bind(e))
 
 func _on_enemy_escaped(_e) -> void:
 	enemies_alive = max(0, enemies_alive - 1)
@@ -163,9 +176,17 @@ func _on_enemy_escaped(_e) -> void:
 func _on_enemy_died(e) -> void:
 	enemies_alive = max(0, enemies_alive - 1)
 	gold += int(e.reward_gold)
+	_spawn_effect_impact((e as Node2D).global_position)
+	if screenshake_on_kill:
+		_shake_camera(0.12, 5.0)
 	_hud_set()
 	_hud_set_enemies_left(enemies_to_spawn + enemies_alive)
 	_check_wave_end()
+
+func _on_enemy_damaged(amount: int, e) -> void:
+	var pos := (e as Node2D).global_position + Vector2(0, -20)
+	_spawn_floating_text("-%d" % amount, pos, Color(1, 0.8, 0.4, 1))
+	_spawn_effect_impact((e as Node2D).global_position)
 
 func _check_wave_end() -> void:
 	if enemies_to_spawn == 0 and enemies_alive == 0:
@@ -330,6 +351,9 @@ func _unhandled_input(event: InputEvent) -> void:
 				# Empty click: clear selection
 				clear_selection()
 
+func _on_speed_changed(mult: float) -> void:
+	Engine.time_scale = clampf(mult, 0.25, 4.0)
+
 func _try_build_at_mouse(pos: Vector2) -> bool:
 	# Fallback picking for BuildSpot in case _input_event is blocked by anything
 	var space := get_world_2d().direct_space_state
@@ -386,6 +410,7 @@ func _setup_path_points() -> void:
 	var path_cells := _cells_along_path(grid_points)
 	_spawn_grid_build_spots_grid(grid_points)
 	_update_grid_painter(path_cells)
+	_center_camera_on_path()
 
 func _place_markers_grid(grid_pts: Array[Vector2i]) -> void:
 	if grid_pts.is_empty():
@@ -476,3 +501,49 @@ func _update_grid_painter(path_cells: Array[Vector2i]) -> void:
 		$PathEdge.visible = false
 	if has_node("PathInner"):
 		$PathInner.visible = false
+
+func _center_camera_on_path() -> void:
+	if not is_instance_valid(camera):
+		return
+	if not path or not path.curve:
+		return
+	var pts: PackedVector2Array = path.curve.get_baked_points()
+	if pts.is_empty():
+		return
+	var min_v := pts[0]
+	var max_v := pts[0]
+	for p in pts:
+		min_v.x = min(min_v.x, p.x)
+		min_v.y = min(min_v.y, p.y)
+		max_v.x = max(max_v.x, p.x)
+		max_v.y = max(max_v.y, p.y)
+	var center := (min_v + max_v) * 0.5
+	camera.position = center
+
+
+# ---- Effects helpers ----
+func _spawn_floating_text(text: String, pos: Vector2, col: Color = Color(1, 1, 1, 1)) -> void:
+	if FloatingTextScene == null or not is_instance_valid(effects_container):
+		return
+	var n: Node2D = FloatingTextScene.instantiate()
+	(n as Node2D).global_position = pos
+	if n.has_method("setup"):
+		n.call("setup", text, pos, col)
+	effects_container.add_child(n)
+
+func _spawn_effect_impact(pos: Vector2, dir: Vector2 = Vector2.ZERO, tint: Color = Color(0.75, 0.05, 0.05, 1.0)) -> void:
+	if ImpactEffectScene == null or not is_instance_valid(effects_container):
+		return
+	var n: Node2D = ImpactEffectScene.instantiate()
+	(n as Node2D).global_position = pos
+	if n.has_method("setup"):
+		n.call("setup", dir, tint)
+	effects_container.add_child(n)
+
+func _shake_camera(time: float = 0.1, magnitude: float = 4.0) -> void:
+	if not is_instance_valid(camera):
+		return
+	var tween := create_tween()
+	tween.tween_property(camera, "offset", Vector2(magnitude, -magnitude), time * 0.25).from(Vector2.ZERO)
+	tween.tween_property(camera, "offset", Vector2(-magnitude, magnitude), time * 0.5)
+	tween.tween_property(camera, "offset", Vector2.ZERO, time * 0.25)

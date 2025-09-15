@@ -72,10 +72,11 @@ func get_muzzle_points_local() -> Array[Vector2]:
 	var b_len := barrel_length
 	var b_w := barrel_width
 	if twin_barrels:
-		points.append(Vector2(b_len, -b_w * 0.35))
-		points.append(Vector2(b_len, b_w * 0.35))
+		# Spawn from the exact center of each barrel with a slight inward offset
+		points.append(Vector2(b_len - 1.0, -b_w * 0.7))
+		points.append(Vector2(b_len - 1.0, b_w * 0.7))
 	else:
-		points.append(Vector2(b_len, 0))
+		points.append(Vector2(b_len - 1.0, 0))
 	return points
 
 func trigger_recoil(barrel_index: int, amount: float = -1.0) -> void:

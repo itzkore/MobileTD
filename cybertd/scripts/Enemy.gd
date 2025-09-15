@@ -7,6 +7,7 @@ signal died
 @export var max_health: int = 10
 @export var reward_gold: int = 2
 var health: int
+signal damaged(amount: int)
 
 func _ready() -> void:
 	health = max_health
@@ -26,6 +27,7 @@ func _process(delta: float) -> void:
 
 func take_damage(dmg: int) -> void:
 	health -= dmg
+	damaged.emit(max(0, dmg))
 	if health <= 0:
 		died.emit()
 		queue_free()
