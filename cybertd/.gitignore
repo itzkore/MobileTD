@@ -1,0 +1,21 @@
+# Godot 4 project ignores
+.godot/
+.import/
+export_presets.cfg
+
+# OS / editor noise
+Thumbs.db
+Desktop.ini
+*.tmp
+*.log
+.DS_Store
+.vscode/
+.idea/
+
+# Build artifacts (if any future exports)
+bin/
+build/
+dist/
+# Godot 4+ specific ignores
+.godot/
+/android/
