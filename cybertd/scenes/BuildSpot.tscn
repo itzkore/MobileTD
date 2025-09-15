@@ -1,19 +1,28 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/BuildSpot.gd" id=1]
+[ext_resource type="Texture2D" path="res://assets/PNG/Default size/towerDefense_tile134.png" id=2]
 
-[sub_resource type="CircleShape2D" id=1]
-radius = 12.0
+[sub_resource type="RectangleShape2D" id=1]
+size = Vector2(48, 48)
 
 [node name="BuildSpot" type="Area2D"]
 script = ExtResource(1)
-collision_layer = 0
+collision_layer = 2
 collision_mask = 0
 input_pickable = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource(1)
 
+
 [node name="Body" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(-12, -12, 12, -12, 12, 12, -12, 12)
-color = Color(0.3, 0.3, 0.8, 0.4)
+polygon = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
+color = Color(0.9, 0.9, 1.0, 0.05)
+z_index = 3
+
+[node name="Border" type="Line2D" parent="."]
+z_index = 4
+width = 1.5
+default_color = Color(0.8, 0.9, 1.0, 0.15)
+points = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24, -24, -24)

@@ -1,0 +1,40 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/Bullet.tscn" id=1]
+[ext_resource type="Script" path="res://scripts/Tower.gd" id=2]
+[ext_resource type="Script" path="res://scripts/visuals/TurretVisual.gd" id=3]
+
+[sub_resource type="CircleShape2D" id=1]
+radius = 76.0
+
+[node name="TowerRapid" type="Node2D"]
+z_index = 30
+script = ExtResource(2)
+fire_rate = 3.4
+bullet_speed = 340.0
+damage = 2
+splash_radius = 0.0
+
+[node name="Range" type="Area2D" parent="."]
+monitoring = true
+monitorable = true
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Range"]
+shape = SubResource(1)
+
+[node name="Sprite2D" type="Node2D" parent="."]
+z_index = 35
+input_pickable = true
+
+[node name="Visual" type="Node2D" parent="Sprite2D"]
+script = ExtResource(3)
+twin_barrels = true
+
+[node name="ClickArea" type="Area2D" parent="."]
+input_pickable = true
+collision_layer = 4
+collision_mask = 0
+
+[node name="ClickShape" type="CollisionShape2D" parent="ClickArea"]
+shape = SubResource(1)

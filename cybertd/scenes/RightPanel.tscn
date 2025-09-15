@@ -1,0 +1,54 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/RightPanel.gd" id=1]
+
+[node name="RightPanel" type="Control"]
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_top = 0.0
+anchor_bottom = 1.0
+offset_left = -220
+offset_right = 0
+mouse_filter = 1
+script = ExtResource(1)
+visible = false
+
+[node name="Panel" type="Panel" parent="."]
+anchor_left = 0.0
+anchor_right = 1.0
+anchor_top = 0.0
+anchor_bottom = 1.0
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10
+offset_top = 10
+offset_right = -10
+offset_bottom = -10
+
+[node name="Title" type="Label" parent="Panel/VBox"]
+text = "Panel"
+
+[node name="Build" type="VBoxContainer" parent="Panel/VBox"]
+
+[node name="Rapid" type="Button" parent="Panel/VBox/Build"]
+text = "Rapid"
+
+[node name="Sniper" type="Button" parent="Panel/VBox/Build"]
+text = "Sniper"
+
+[node name="Splash" type="Button" parent="Panel/VBox/Build"]
+text = "Splash"
+
+[node name="Tower" type="VBoxContainer" parent="Panel/VBox"]
+visible = false
+
+[node name="Stats" type="Label" parent="Panel/VBox/Tower"]
+text = ""
+
+[node name="UpgradeDamage" type="Button" parent="Panel/VBox/Tower"]
+text = "Upgrade Damage (+1)"
+
+[node name="Sell" type="Button" parent="Panel/VBox/Tower"]
+text = "Sell"

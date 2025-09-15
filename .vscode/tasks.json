@@ -1,0 +1,32 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "godot: dev",
+			"type": "shell",
+			"command": "scripts\\win\\godot-dev.cmd",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "godot: import",
+			"type": "shell",
+			"command": "cmd",
+			"args": ["/c","call scripts\\win\\find-godot4.cmd && \"%GODOT_EXE%\" --headless --path cybertd --import"],
+			"problemMatcher": []
+		},
+		{
+			"label": "godot: clean-imports",
+			"type": "shell",
+			"command": "scripts\\win\\clean-imports.cmd",
+			"problemMatcher": []
+		},
+		{
+			"label": "godot: play",
+			"type": "shell",
+			"command": "cmd",
+			"args": ["/c","call scripts\\win\\find-godot4.cmd && \"%GODOT_EXE%\" --path cybertd"],
+			"problemMatcher": []
+		}
+	]
+}
