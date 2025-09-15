@@ -1,15 +1,17 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/Bullet.tscn" id=1]
-[ext_resource type="Script" path="res://scripts/Tower.gd" id=2]
-[ext_resource type="Script" path="res://scripts/visuals/TurretVisual.gd" id=3]
+[ext_resource type="Script" path="res://scripts/Tower.gd" id="1_tower"]
+[ext_resource type="Script" path="res://scripts/visuals/TurretVisual.gd" id="2_visual"]
 
-[sub_resource type="CircleShape2D" id=1]
+[sub_resource type="CircleShape2D" id="1_range"]
 radius = 192.0
+
+[sub_resource type="CircleShape2D" id="2_click"]
+radius = 24.0
 
 [node name="TowerSplash" type="Node2D"]
 z_index = 30
-script = ExtResource(2)
+script = ExtResource("1_tower")
 fire_rate = 1.0
 bullet_speed = 260.0
 damage = 3
@@ -19,20 +21,25 @@ turn_rate = 180.0
 splash_radius = 40.0
 recoil_amount = 4.0
 
+[node name="RangeIndicator" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+z_index = 500
+
 [node name="Range" type="Area2D" parent="."]
 monitoring = true
 monitorable = true
 collision_mask = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Range"]
-shape = SubResource(1)
+shape = SubResource("1_range")
 
 [node name="Sprite2D" type="Node2D" parent="."]
 z_index = 35
 input_pickable = true
 
 [node name="Visual" type="Node2D" parent="Sprite2D"]
-script = ExtResource("3")
+script = ExtResource("2_visual")
 custom_detail_color = Color(0.2, 0.6, 0.9, 1)
 splash_turret = true
 barrel_length = 18.0
@@ -47,5 +54,4 @@ collision_layer = 4
 collision_mask = 0
 
 [node name="ClickShape" type="CollisionShape2D" parent="ClickArea"]
-shape = SubResource("1")
-shape.radius = 24.0
+shape = SubResource("2_click")

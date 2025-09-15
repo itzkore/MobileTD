@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://b7y165606k46" path="res://scenes/Tower.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/TowerAcoustic.gd" id="2_acoustic"]
+
+[node name="TowerAcoustic" instance=ExtResource("1_base")]
+script = ExtResource("2_acoustic")
+tower_range = 130.0
+turn_rate = 150.0
+fire_rate = 0.4
+build_cost = 30
+
+[node name="Visual" parent="Sprite2D" index="0"]
+custom_detail_color = Color(0.8, 0.3, 0.9, 1)
+base_radius = 20.0
+twin_barrels = false

@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://b7y165606k46" path="res://scenes/Tower.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/TowerNano.gd" id="2_nano"]
+
+[node name="TowerNano" instance=ExtResource("1_base")]
+script = ExtResource("2_nano")
+tower_range = 160.0
+turn_rate = 120.0
+fire_rate = 0.2
+build_cost = 40
+
+[node name="Visual" parent="Sprite2D" index="0"]
+custom_detail_color = Color(0.3, 0.9, 0.4, 1)
+base_radius = 18.0
+twin_barrels = false

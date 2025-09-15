@@ -10,31 +10,17 @@ bullet_speed = 1200.0
 damage = 12
 armor_penetration = 10
 tower_range = 480.0
-turn_rate = 90.0
 bullet_trail = true
 recoil_amount = 8.0
 build_cost = 18
 damage_per_level = 6
-
-[node name="Range" parent="." index="1"]
-_edit_lock_ = true
-
-[node name="CollisionShape2D" parent="Range" index="0"]
-shape.radius = 120.0
-
-[node name="Sprite2D" parent="." index="2"]
-_edit_lock_ = true
 
 [node name="Visual" parent="Sprite2D" index="0"]
 barrel_length = 40.0
 barrel_width = 4.0
 twin_barrels = false
 
-[node name="MuzzlePoint" type="Marker2D" parent="Sprite2D/Visual" index="0"]
-position = Vector2(40, 0)
-
 [node name="ClickArea" parent="." index="3"]
 _edit_lock_ = true
 
 [node name="ClickShape" parent="ClickArea" index="0"]
-shape.radius = 24.0

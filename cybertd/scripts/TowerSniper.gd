@@ -4,7 +4,7 @@ func _shoot(target: Node) -> void:
 	var b = bullet_scene.instantiate()
 	if b == null:
 		return
-	var muzzle_pos := _get_muzzle_global(0)
+	var muzzle_pos := _get_muzzle_global()
 	b.global_position = muzzle_pos
 	
 	var target_node = target

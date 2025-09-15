@@ -10,8 +10,12 @@ signal died
 var health: int
 signal damaged(amount: int)
 
+const DebuffClass = preload("res://scripts/effects/Debuff.gd")
+
 var last_pos: Vector2 = Vector2.ZERO
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
+
+var debuffs: Array = []
 
 func _ready() -> void:
 	health = max_health
@@ -23,7 +27,18 @@ func _ready() -> void:
 	queue_redraw()
 
 func _process(delta: float) -> void:
-	progress += speed * delta
+	var speed_modifier = 1.0
+	
+	for i in range(debuffs.size() - 1, -1, -1):
+		var debuff = debuffs[i]
+		if debuff.process_debuff(delta):
+			debuff.on_remove()
+			debuffs.remove_at(i)
+		
+		if "speed_multiplier" in debuff:
+			speed_modifier *= debuff.speed_multiplier
+
+	progress += (speed * speed_modifier) * delta
 	if progress_ratio >= 1.0:
 		escaped.emit()
 		queue_free()
@@ -53,6 +68,13 @@ func _update_animation() -> void:
 	else:
 		animated_sprite.play("walk_right")
 
+func add_debuff(debuff) -> void:
+	for d in debuffs:
+		if d.get_script() == debuff.get_script():
+			d.time_elapsed = 0
+			return
+	debuffs.append(debuff)
+
 func _setup_animations() -> void:
 	var sprite_frames = animated_sprite.sprite_frames
 	if not sprite_frames:
@@ -71,7 +93,7 @@ func _setup_animations() -> void:
 func _create_animation_from_folder(sprite_frames: SpriteFrames, anim_name: String, folder_path: String) -> void:
 	sprite_frames.add_animation(anim_name)
 	sprite_frames.set_animation_loop(anim_name, true)
-	sprite_frames.set_animation_speed(anim_name, 7.2) # Původně 12.0, sníženo o 40%
+	sprite_frames.set_animation_speed(anim_name, 7.2)
 
 	var dir = DirAccess.open(folder_path)
 	if not dir:

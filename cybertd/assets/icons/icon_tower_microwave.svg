@@ -1,0 +1,7 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>Microwave Tower Icon</title>
+  <rect x="8" y="40" width="48" height="16" rx="4" fill="#555"/>
+  <rect x="16" y="24" width="32" height="20" rx="6" fill="#888"/>
+  <rect x="20" y="12" width="24" height="16" fill="#aaa"/>
+  <path d="M 22 14 C 26 22, 38 22, 42 14" stroke="#3388FF" stroke-width="2" fill="none"/>
+</svg>

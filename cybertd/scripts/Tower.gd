@@ -21,8 +21,6 @@ extends Node2D
 
 var level: int = 1
 var show_range: bool = false
-var _barrel_cycle: int = 0
-
 var bullet_scene: PackedScene
 var time_accum: float = 0.0
 
@@ -39,12 +37,14 @@ var _base_fire_rate: float = 1.0
 var _base_turn_rate: float = 1.0
 var _range_indicator: Control
 
+var RangeIndicatorScene = preload("res://scenes/ui/RangeIndicator.tscn")
+
 func _ready() -> void:
 	# Bezpečné načtení uzlů
 	range_area = get_node_or_null("Range")
 	click_area = get_node_or_null("ClickArea")
 	sprite = get_node_or_null("Sprite2D")
-	_range_indicator = get_node_or_null("RangeIndicator")
+	# _range_indicator se nyní vytváří dynamicky
 	if sprite:
 		visual = sprite.get_node_or_null("Visual")
 	if range_area:
@@ -69,10 +69,6 @@ func _ready() -> void:
 	# Synchronizace poloměru s proměnnou 'tower_range'
 	if _range_shape:
 		_range_shape.radius = tower_range
-	
-	var click_shape_node = click_area.get_node_or_null("CollisionShape2D")
-	if click_shape_node and click_shape_node.shape is CircleShape2D:
-		(click_shape_node.shape as CircleShape2D).radius = tower_range
 
 
 func _process(delta: float) -> void:
@@ -95,11 +91,8 @@ func _shoot(target: Node) -> void:
 	var b = bullet_scene.instantiate()
 	if b == null:
 		return
-	var twin := visual and bool(visual.get("twin_barrels"))
-	var muzzle_index := 0
-	if twin:
-		muzzle_index = _barrel_cycle
-	var muzzle_pos := _get_muzzle_global(muzzle_index)
+	
+	var muzzle_pos = _get_muzzle_global()
 	b.global_position = muzzle_pos
 	
 	var target_node = target
@@ -122,20 +115,16 @@ func _shoot(target: Node) -> void:
 		container.add_child(b)
 	else:
 		get_tree().current_scene.add_child(b)
-	# Trigger visual recoil after shot
+		
 	if visual and visual.has_method("trigger_recoil"):
-		visual.trigger_recoil(muzzle_index, recoil_amount)
-	if twin:
-		_barrel_cycle = 1 - _barrel_cycle
+		visual.trigger_recoil(0, recoil_amount)
 
-func _get_muzzle_global(idx: int = 0) -> Vector2:
+func _get_muzzle_global() -> Vector2:
 	if visual:
-		# Nový, spolehlivý způsob: Najdeme uzel MuzzlePoint
 		var muzzle_point = visual.get_node_or_null("MuzzlePoint")
 		if muzzle_point and muzzle_point is Marker2D:
 			return muzzle_point.global_position
 	
-	# Záložní varianta, pokud MuzzlePoint neexistuje
 	return global_position
 
 func _aim_at(target: Node, delta: float) -> bool:
@@ -170,7 +159,16 @@ func get_range_radius() -> float:
 	return 0.0
 
 func select() -> void:
-	if _range_indicator and _range_indicator.has_method("show_indicator"):
+	if not is_instance_valid(_range_indicator):
+		_range_indicator = RangeIndicatorScene.instantiate()
+		var ui_effects_layer = get_tree().get_first_node_in_group("ui_effects_layer")
+		if ui_effects_layer:
+			ui_effects_layer.add_child(_range_indicator)
+		else: # Záložní varianta
+			get_tree().current_scene.add_child(_range_indicator)
+		_range_indicator.global_position = global_position
+
+	if _range_indicator.has_method("show_indicator"):
 		_range_indicator.show_indicator(get_range_radius())
 	# Forward level to visual for rank chevrons if supported
 	if visual:
@@ -178,8 +176,9 @@ func select() -> void:
 		visual.queue_redraw()
 
 func deselect() -> void:
-	if _range_indicator and _range_indicator.has_method("hide_indicator"):
-		_range_indicator.hide_indicator()
+	if is_instance_valid(_range_indicator):
+		_range_indicator.queue_free()
+		_range_indicator = null
 
 func get_stats() -> Dictionary:
 	return {

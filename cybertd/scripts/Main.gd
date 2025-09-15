@@ -8,6 +8,8 @@ extends Node2D
 @onready var hud: Control = $UI/HUD
 @onready var right_panel: Control = $UI/RightPanel
 @onready var grid_painter: Node2D = $GridPainter
+@onready var effects_container: Node2D = $EffectsContainer
+@onready var ui_effects_layer: CanvasLayer = $UIEffectsLayer
 
 var enemy_scene: PackedScene
 var juggernaut_scene: PackedScene
@@ -30,7 +32,6 @@ var next_wave_timer: Timer
 # Effects
 var FloatingTextScene: PackedScene = preload("res://scenes/FloatingText.tscn")
 var ImpactEffectScene: PackedScene = preload("res://scenes/ImpactEffect.tscn")
-@onready var effects_container: Node2D = $Effects
 @onready var camera: Camera2D = $Camera2D
 var screenshake_on_kill: bool = false
 
@@ -59,6 +60,30 @@ var tower_definitions := {
 			"custom_detail_color": Color(0.2, 0.6, 0.9, 1),
 			"splash_turret": true, "barrel_length": 18.0, "barrel_width": 8.0
 		}
+	},
+	"microwave": {
+		"scene": preload("res://scenes/TowerMicrowave.tscn"),
+		"cost": 25, "name": "Microwave", "damage": 2, "armor_penetration": 0,
+		"visual_config": {
+			"custom_detail_color": Color(0.2, 0.8, 0.9, 1),
+			"barrel_length": 20.0, "barrel_width": 15.0, "twin_barrels": false
+		}
+	},
+	"acoustic": {
+		"scene": preload("res://scenes/TowerAcoustic.tscn"),
+		"cost": 30, "name": "Acoustic", "damage": 0, "armor_penetration": 0,
+		"visual_config": {
+			"custom_detail_color": Color(0.8, 0.3, 0.9, 1),
+			"base_radius": 20.0, "twin_barrels": false
+		}
+	},
+	"nano": {
+		"scene": preload("res://scenes/TowerNano.tscn"),
+		"cost": 40, "name": "Nano Swarm", "damage": 5, "armor_penetration": 0,
+		"visual_config": {
+			"custom_detail_color": Color(0.3, 0.9, 0.4, 1),
+			"base_radius": 18.0, "twin_barrels": false
+		}
 	}
 }
 var selected_build: String = "rapid"
@@ -84,10 +109,13 @@ var waves := [
 	{"count": 24, "speed": 43.2, "health": 60, "reward": 6, "armor": 8},
 	{"count": 24, "speed": 44.4, "health": 66, "reward": 6, "armor": 8},
 	{"count": 26, "speed": 45.6, "health": 72, "reward": 7, "armor": 9},
-	{"count": 28, "speed": 48.0, "health": 80, "reward": 8, "armor": 10, "juggernauts": 4}, # Finální vlna s Juggernauty
+	{"count": 28, "speed": 48.0, "health": 80, "reward": 8, "armor": 10, "juggernauts": 4},
 ]
 
 func _ready() -> void:
+	# Nastavení tmavého pozadí pro Godot 4
+	RenderingServer.set_default_clear_color(Color(0.1, 0.12, 0.15, 1.0))
+
 	enemy_scene = load("res://scenes/Enemy.tscn")
 	juggernaut_scene = load("res://scenes/EnemyJuggernaut.tscn")
 	tower_scene = load("res://scenes/Tower.tscn")
@@ -402,13 +430,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		if menu:
 			get_tree().change_scene_to_packed(menu)
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		# Nejprve zkusíme vybrat novou věž
-		var tower_was_selected = _try_select_tower_at_mouse(event.position)
+		# Změna priority: Nejprve zkusíme stavět.
+		var build_spot_was_selected = _try_build_at_mouse(event.position)
 		
-		# Pokud jsme nevybrali žádnou věž, zrušíme výběr
-		if not tower_was_selected:
-			# Ale ještě zkontrolujeme, jestli jsme neklikli na build spot
-			if not _try_build_at_mouse(event.position):
+		# Pokud jsme neklikli na stavební parcelu, zkusíme vybrat věž.
+		if not build_spot_was_selected:
+			var tower_was_selected = _try_select_tower_at_mouse(event.position)
+			
+			# Pokud jsme neklikli ani na věž, zrušíme výběr.
+			if not tower_was_selected:
 				clear_selection()
 
 func _on_speed_changed(mult: float) -> void:
@@ -585,7 +615,7 @@ func _spawn_floating_text(text: String, pos: Vector2, color: Color) -> void:
 	if FloatingTextScene == null:
 		return
 	var ft = FloatingTextScene.instantiate()
-	effects_container.add_child(ft)
+	effects_container.add_child(ft) # Opraveno
 	if ft.has_method("setup"):
 		ft.setup(text, pos, color)
 
@@ -593,7 +623,7 @@ func _spawn_effect_impact(pos: Vector2, direction: Vector2, p_scale: float = 1.0
 	if ImpactEffectScene == null:
 		return
 	var fx = ImpactEffectScene.instantiate()
-	effects_container.add_child(fx)
+	effects_container.add_child(fx) # Opraveno
 	fx.global_position = pos
 	if fx.has_method("play_effect"):
 		fx.play_effect(direction, p_scale)
