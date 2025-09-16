@@ -26,6 +26,20 @@ func _physics_process(_delta: float) -> void:
 
 
 func _ready() -> void:
+	# Apply global UI scale for mobile
+	var scaler = get_tree().root.get_node_or_null("UIScaler")
+	if scaler and scaler.has_method("apply_to"):
+		scaler.apply_to(self)
+		var sf: float = scaler.scale_factor if "scale_factor" in scaler else 1.0
+		var lbl_font := int(22.0 * max(1.0, sf))
+		var btn_font := int(24.0 * max(1.0, sf))
+		for l in [enemies_left_label, wave_label_bottom, lives_bottom, gold_bottom]:
+			if l:
+				l.add_theme_font_size_override("font_size", lbl_font)
+		for b in [start_button, speed1, speed2, speed3]:
+			if b:
+				b.add_theme_font_size_override("font_size", btn_font)
+				b.custom_minimum_size = Vector2(80, 64)
 	state_panel.visible = false
 	start_button.pressed.connect(_on_start_pressed)
 	set_enemies_left(0)

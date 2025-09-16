@@ -12,6 +12,18 @@ const SCN_PROFILE: PackedScene = preload("res://scenes/Profile.tscn")
 @onready var quit_btn: Button = $Center/VBox/Quit
 
 func _ready() -> void:
+	# Apply global UI scale for mobile (lookup autoload by name)
+	var scaler = get_tree().root.get_node_or_null("UIScaler")
+	if scaler and scaler.has_method("apply_to"):
+		scaler.apply_to(self)
+		# Also enlarge button fonts proportionally
+		var sf: float = scaler.scale_factor if "scale_factor" in scaler else 1.0
+		var btn_font := int(28.0 * max(1.0, sf))
+		for b in [play_btn, codex_btn, profile_btn, quit_btn]:
+			if b:
+				b.add_theme_font_size_override("font_size", btn_font)
+				b.custom_minimum_size = Vector2(300, 80)
+
 	play_btn.pressed.connect(_on_play)
 	codex_btn.pressed.connect(_on_codex)
 	profile_btn.pressed.connect(_on_profile)

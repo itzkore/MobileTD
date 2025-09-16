@@ -21,7 +21,7 @@ theme_override_constants/separation = 16
 
 [node name="Title" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 28
 text = "Panel Title"
 horizontal_alignment = 1
 
@@ -45,11 +45,16 @@ visible = false
 [node name="StatsLabel" type="Label" parent="VBoxContainer/Scroll/Content/TowerContent"]
 layout_mode = 2
 text = "Stats..."
+theme_override_font_sizes/font_size = 22
 
 [node name="UpgradeButton" type="Button" parent="VBoxContainer/Scroll/Content/TowerContent"]
 layout_mode = 2
 text = "Upgrade"
+custom_minimum_size = Vector2(220, 60)
+theme_override_font_sizes/font_size = 24
 
 [node name="SellButton" type="Button" parent="VBoxContainer/Scroll/Content/TowerContent"]
 layout_mode = 2
 text = "Sell"
+custom_minimum_size = Vector2(220, 60)
+theme_override_font_sizes/font_size = 24
