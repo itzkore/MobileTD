@@ -20,9 +20,11 @@ if exist "%PATH_FILE%" (
             goto :_found
           )
         )
-      ) else if exist "%%~L" (
-        set "GODOT_EXE=%%~L"
-        goto :_found
+      ) else (
+        if exist "%%~L" (
+          set "GODOT_EXE=%%~L"
+          goto :_found
+        )
       )
     )
   )

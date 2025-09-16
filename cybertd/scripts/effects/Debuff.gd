@@ -29,3 +29,23 @@ func on_added() -> void:
 func on_target_died() -> void:
 	# Volitelný hook při smrti cíle (pro přesměrování/spršku atd.)
 	pass
+
+# ---- Serialization helpers ----
+func to_dict() -> Dictionary:
+	return {
+		"script": get_script().resource_path if get_script() and get_script().resource_path != "" else "",
+		"remaining": max(0.0, duration - time_elapsed)
+	}
+
+static func from_dict(d: Dictionary, p_target: Node2D) -> Debuff:
+	if not d.has("script"):
+		return null
+	var scr_path: String = String(d.get("script", ""))
+	if scr_path == "" or not ResourceLoader.exists(scr_path):
+		return null
+	var scr = load(scr_path)
+	var rem: float = float(d.get("remaining", 0.0))
+	var inst = scr.new(p_target, max(0.0, rem))
+	if inst and inst is Debuff:
+		return inst
+	return null

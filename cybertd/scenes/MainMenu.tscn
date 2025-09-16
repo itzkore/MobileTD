@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://bjtgmmsnn7k14"]
+[gd_scene load_steps=3 format=3 uid="uid://bjtgmmsnn7k14"]
 
 [ext_resource type="Script" uid="uid://rjy5k75o2osl" path="res://scripts/MainMenu.gd" id="1"]
+[ext_resource type="Script" uid="uid://dexc2rnggxhx1" path="res://scripts/ui/Ripple.gd" id="2_ripple"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -26,25 +27,78 @@ layout_mode = 2
 text = "Gold: 0"
 
 [node name="Center" type="CenterContainer" parent="."]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="VBox" type="VBoxContainer" parent="Center"]
+custom_minimum_size = Vector2(360, 360)
 layout_mode = 2
+theme_override_constants/separation = 24
 
 [node name="Play" type="Button" parent="Center/VBox"]
 layout_mode = 2
 text = "Play"
 
+[node name="Ripple" type="Control" parent="Center/VBox/Play"]
+visible = false
+layout_mode = 2
+anchors_preset = 0
+script = ExtResource("2_ripple")
+
 [node name="Codex" type="Button" parent="Center/VBox"]
 layout_mode = 2
 text = "Codex"
+
+[node name="Ripple" type="Control" parent="Center/VBox/Codex"]
+visible = false
+layout_mode = 2
+anchors_preset = 0
+script = ExtResource("2_ripple")
 
 [node name="Profile" type="Button" parent="Center/VBox"]
 layout_mode = 2
 text = "Profile"
 
+[node name="Ripple" type="Control" parent="Center/VBox/Profile"]
+visible = false
+layout_mode = 2
+anchors_preset = 0
+script = ExtResource("2_ripple")
+
+[node name="Settings" type="Button" parent="Center/VBox"]
+layout_mode = 2
+text = "Settings"
+
+[node name="Ripple" type="Control" parent="Center/VBox/Settings"]
+visible = false
+layout_mode = 2
+anchors_preset = 0
+script = ExtResource("2_ripple")
+
 [node name="Quit" type="Button" parent="Center/VBox"]
 layout_mode = 2
 text = "Quit"
+
+[node name="Ripple" type="Control" parent="Center/VBox/Quit"]
+visible = false
+layout_mode = 2
+anchors_preset = 0
+script = ExtResource("2_ripple")
+
+[node name="Resume" type="Button" parent="Center/VBox"]
+layout_mode = 2
+text = "Resume"
+
+[node name="Ripple" type="Control" parent="Center/VBox/Resume"]
+visible = false
+layout_mode = 2
+anchors_preset = 0
+script = ExtResource("2_ripple")

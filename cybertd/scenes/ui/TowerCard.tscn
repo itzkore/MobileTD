@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/TowerPreview.tscn" id="2_preview"]
 
 [node name="TowerCard" type="PanelContainer"]
-custom_minimum_size = Vector2(200, 100)
+custom_minimum_size = Vector2(220, 110)
 script = ExtResource("1_card")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
@@ -19,17 +19,21 @@ size_flags_horizontal = 3
 
 [node name="NameLabel" type="Label" parent="HBoxContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 22
 text = "Tower Name"
 
 [node name="CostLabel" type="Label" parent="HBoxContainer/VBoxContainer"]
 layout_mode = 2
 text = "Cost: 100 G"
+theme_override_font_sizes/font_size = 18
 
 [node name="StatsLabel" type="Label" parent="HBoxContainer/VBoxContainer"]
 layout_mode = 2
 text = "Dmg: 10 / Pen: 2"
+theme_override_font_sizes/font_size = 18
 
 [node name="Button" type="Button" parent="."]
 layout_mode = 2
 flat = true
+custom_minimum_size = Vector2(220, 110)
+theme_override_font_sizes/font_size = 22

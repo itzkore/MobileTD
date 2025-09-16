@@ -14,11 +14,15 @@ config/name="CyberTD"
 run/main_scene="res://scenes/MainMenu.tscn"
 config/features=PackedStringArray("4.4", "Mobile")
 config/icon="res://icon.svg"
+boot_splash/show_image=false
+boot_splash/show_logo=false
 
 [autoload]
 
 Game="*res://scripts/core/Game.gd"
 UIScaler="*res://scripts/core/UIScaler.gd"
+Haptics="*res://scripts/core/Haptics.gd"
+SaveGame="*res://scripts/core/SaveGame.gd"
 
 [rendering]
 

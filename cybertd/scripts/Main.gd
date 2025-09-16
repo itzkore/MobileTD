@@ -34,6 +34,11 @@ var FloatingTextScene: PackedScene = preload("res://scenes/FloatingText.tscn")
 var ImpactEffectScene: PackedScene = preload("res://scenes/ImpactEffect.tscn")
 @onready var camera: Camera2D = $Camera2D
 var screenshake_on_kill: bool = false
+const DebuffClass = preload("res://scripts/effects/Debuff.gd")
+
+# Snapshot cadence for exact resume
+var _snapshot_accum: float = 0.0
+const SNAPSHOT_INTERVAL := 1.0 # seconds
 
 # Build selection - JEDINÝ ZDROJ PRAVDY PRO DATA O VĚŽÍCH
 var tower_definitions := {
@@ -146,6 +151,37 @@ func _ready() -> void:
 	if right_panel and right_panel.has_method("close_panel"):
 		right_panel.close_panel()
 
+	# Handle resume request from MainMenu
+	var saver = get_tree().root.get_node_or_null("SaveGame")
+	if saver and saver.has_method("consume_resume") and saver.consume_resume():
+		if saver.has_method("get_last_run"):
+			var last: Dictionary = saver.get_last_run()
+			# Apply last run values safely
+			wave_index = int(last.get("wave", 0))
+			lives = int(max(1, last.get("lives", 20)))
+			gold = int(max(0, last.get("gold", 50)))
+			_hud_set()
+			# Restore placed towers, wave timers and enemies if snapshot exists
+			if saver.has_method("load_snapshot"):
+				var snap: Dictionary = saver.load_snapshot()
+				if not snap.is_empty():
+					_restore_from_snapshot(snap)
+					# UX: brief toast to indicate continuation
+					if hud and hud.has_method("show_state"):
+						hud.show_state("Continuing last run…")
+						await get_tree().create_timer(1.5).timeout
+						if hud and hud.has_method("hide_state"):
+							hud.hide_state()
+
+func _process(delta: float) -> void:
+	# Periodic snapshot for exact resume (lightweight)
+	_snapshot_accum += delta
+	if _snapshot_accum >= SNAPSHOT_INTERVAL:
+		_snapshot_accum = 0.0
+		var saver = get_tree().root.get_node_or_null("SaveGame")
+		if saver and saver.has_method("save_snapshot"):
+			saver.save_snapshot(_make_snapshot())
+
 func _wire_build_spots() -> void:
 	for spot in build_spots.get_children():
 		if spot.has_signal("build_requested"):
@@ -164,6 +200,10 @@ func _hud_set() -> void:
 		if hud.speed_changed.is_connected(_on_speed_changed):
 			hud.speed_changed.disconnect(_on_speed_changed)
 		hud.speed_changed.connect(_on_speed_changed)
+	if hud and hud.has_signal("pause_requested"):
+		if hud.pause_requested.is_connected(_on_pause_requested):
+			hud.pause_requested.disconnect(_on_pause_requested)
+		hud.pause_requested.connect(_on_pause_requested)
 	if hud and hud.has_signal("build_selected"):
 		if hud.build_selected.is_connected(_on_build_selected):
 			hud.build_selected.disconnect(_on_build_selected)
@@ -289,6 +329,10 @@ func _check_wave_end() -> void:
 		
 		wave_index += 1
 		_hud_set()
+		# Autosave progress after completing the wave
+		var saver = get_tree().root.get_node_or_null("SaveGame")
+		if saver and saver.has_method("autosave_run"):
+			saver.autosave_run("default", wave_index, lives, gold)
 		if wave_index >= waves.size():
 			if hud and hud.has_method("show_state"):
 				hud.show_state("Victory! Press Esc for Menu")
@@ -450,9 +494,7 @@ func _update_path_line() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
-		var menu := load("res://scenes/MainMenu.tscn") as PackedScene
-		if menu:
-			get_tree().change_scene_to_packed(menu)
+		_on_pause_requested()
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		# Změna priority: Nejprve zkusíme stavět.
 		var build_spot_was_selected = _try_build_at_mouse(event.position)
@@ -464,6 +506,206 @@ func _unhandled_input(event: InputEvent) -> void:
 			# Pokud jsme neklikli ani na věž, zrušíme výběr.
 			if not tower_was_selected:
 				clear_selection()
+
+func _notification(what: int) -> void:
+	# On application pause/quit, save an immediate snapshot
+	if what == Node.NOTIFICATION_WM_CLOSE_REQUEST or what == Node.NOTIFICATION_APPLICATION_PAUSED:
+		var saver = get_tree().root.get_node_or_null("SaveGame")
+		if saver and saver.has_method("save_snapshot"):
+			saver.save_snapshot(_make_snapshot())
+
+func _on_pause_requested() -> void:
+	# Create pause overlay and pause the tree
+	var scn := load("res://scenes/PauseOverlay.tscn") as PackedScene
+	if scn:
+		var overlay := scn.instantiate()
+		add_child(overlay)
+		get_tree().paused = true
+		overlay.resume_requested.connect(func():
+			get_tree().paused = false
+			overlay.queue_free()
+		)
+		overlay.settings_requested.connect(func():
+			var setScn := load("res://scenes/Settings.tscn") as PackedScene
+			if setScn:
+				var inst := setScn.instantiate()
+				add_child(inst)
+		)
+		overlay.main_menu_requested.connect(func():
+			get_tree().paused = false
+			var menu := load("res://scenes/MainMenu.tscn") as PackedScene
+			if menu:
+				get_tree().call_deferred("change_scene_to_packed", menu)
+		)
+
+# ---- Snapshot serialization ----
+func _make_snapshot() -> Dictionary:
+	# Towers
+	var towers: Array = []
+	for t in towers_container.get_children():
+		if t == null or not (t is Node2D):
+			continue
+		var scene_path: String = t.get_scene_file_path() if t.get_scene_file_path() != "" else ""
+		var entry := {
+			"scene": scene_path,
+			"pos": [ (t as Node2D).global_position.x, (t as Node2D).global_position.y ],
+			"level": int(t.level) if "level" in t else 1
+		}
+		towers.append(entry)
+
+	# Enemies (serialize essential runtime properties)
+	var enemies: Array = []
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if e == null:
+			continue
+		var deb_list: Array = []
+		if "debuffs" in e:
+			for d in e.debuffs:
+				if d and d.has_method("to_dict"):
+					deb_list.append(d.to_dict())
+		var ep := {
+			"scene": e.get_scene_file_path() if e.get_scene_file_path() != "" else "res://scenes/Enemy.tscn",
+			"progress": float(e.progress) if "progress" in e else 0.0,
+			"speed": float(e.speed) if "speed" in e else 120.0,
+			"max_health": int(e.max_health) if "max_health" in e else 10,
+			"health": int(e.health) if "health" in e else 10,
+			"armor": int(e.armor) if "armor" in e else 0,
+			"reward": int(e.reward_gold) if "reward_gold" in e else 2,
+			"debuffs": deb_list
+		}
+		enemies.append(ep)
+
+	# Timers and game state
+	return {
+		"wave_index": wave_index,
+		"lives": lives,
+		"gold": gold,
+		"enemies_to_spawn": enemies_to_spawn,
+		"spawn_timer_left": spawn_timer.time_left if spawn_timer and not spawn_timer.is_stopped() else 0.0,
+		"next_wave_left": next_wave_timer.time_left if is_instance_valid(next_wave_timer) and not next_wave_timer.is_stopped() else 0.0,
+		"towers": towers,
+		"enemies": enemies
+	}
+
+func _restore_from_snapshot(snap: Dictionary) -> void:
+	# Clear existing towers/enemies
+	for t in towers_container.get_children():
+		t.queue_free()
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if is_instance_valid(e):
+			e.queue_free()
+	# Reset counters
+	enemies_alive = 0
+	
+	# Restore simple game state
+	wave_index = int(snap.get("wave_index", wave_index))
+	lives = int(snap.get("lives", lives))
+	gold = int(snap.get("gold", gold))
+	enemies_to_spawn = int(snap.get("enemies_to_spawn", enemies_to_spawn))
+	_hud_set()
+
+	# Restore towers
+	var towers_data: Array = snap.get("towers", [])
+	for td in towers_data:
+		var scene_path: String = String(td.get("scene", ""))
+		if scene_path == "":
+			continue
+		var sc: PackedScene = load(scene_path)
+		if sc:
+			var t = sc.instantiate()
+			var p = td.get("pos", Vector2.ZERO)
+			(t as Node2D).global_position = _to_vec2(p)
+			var lvl: int = int(td.get("level", 1))
+			if "level" in t:
+				t.level = 1
+				if t.has_method("upgrade_level"):
+					for i in range(max(0, lvl - 1)):
+						t.upgrade_level()
+			towers_container.add_child(t)
+
+	# Remove build spots under restored towers so player can't rebuild on them
+	var tower_positions := {}
+	for tt in towers_container.get_children():
+		if tt is Node2D:
+			tower_positions[(tt as Node2D).global_position] = true
+	for s in build_spots.get_children():
+		if s is Node2D:
+			var spos: Vector2 = (s as Node2D).global_position
+			# Compare on exact grid positions; allow small epsilon
+			for tp in tower_positions.keys():
+				if (tp as Vector2).distance_to(spos) < 1.0:
+					s.queue_free()
+					break
+
+	# Restore enemies
+	var enemies_data: Array = snap.get("enemies", [])
+	for ed in enemies_data:
+		var escene: PackedScene = load(String(ed.get("scene", "res://scenes/Enemy.tscn")))
+		if escene == null:
+			continue
+		var e = escene.instantiate()
+		# Set properties before adding to tree (health will be set after _ready runs)
+		e.speed = float(ed.get("speed", 120.0))
+		e.max_health = int(ed.get("max_health", 10))
+		e.reward_gold = int(ed.get("reward", 2))
+		e.armor = int(ed.get("armor", 0))
+		path.add_child(e)
+		e.reset_on_spawn(e.speed) # ensure internal state is fresh
+		if ed.has("progress"):
+			e.progress = float(ed.get("progress", 0.0))
+		# Override health after _ready initialization
+		e.health = clamp(int(ed.get("health", e.max_health)), 1, e.max_health)
+		enemies_alive += 1
+		_hud_set_enemies_left(enemies_to_spawn + enemies_alive)
+		# Rehook signals
+		e.escaped.connect(_on_enemy_escaped.bind(e))
+		e.died.connect(_on_enemy_died.bind(e))
+		if e.has_signal("damaged"):
+			e.damaged.connect(_on_enemy_damaged.bind(e))
+		# Restore debuffs
+		if ed.has("debuffs"):
+			for d in ed.get("debuffs", []):
+				var inst = DebuffClass.from_dict(d, e)
+				if inst:
+					e.add_debuff(inst)
+
+	# Restore timers
+	var stl := float(snap.get("spawn_timer_left", 0.0))
+	if stl > 0.0:
+		spawn_timer.start(stl)
+	else:
+		spawn_timer.stop()
+	var ntl := float(snap.get("next_wave_left", 0.0))
+	if is_instance_valid(next_wave_timer):
+		if ntl > 0.0:
+			next_wave_timer.start(ntl)
+		else:
+			next_wave_timer.stop()
+
+func _to_vec2(v) -> Vector2:
+	match typeof(v):
+		TYPE_VECTOR2:
+			return v
+		TYPE_ARRAY:
+			var a := v as Array
+			if a.size() >= 2:
+				return Vector2(float(a[0]), float(a[1]))
+		TYPE_DICTIONARY:
+			var d := v as Dictionary
+			if d.has("x") and d.has("y"):
+				return Vector2(float(d.get("x")), float(d.get("y")))
+		TYPE_STRING:
+			var s := String(v)
+			# Accept simple "x,y" format
+			s = s.strip_edges()
+			s = s.replace("(", "").replace(")", "").replace("[", "").replace("]", "").replace("{", "").replace("}", "")
+			if s.find(",") != -1:
+				var parts := s.split(",")
+				if parts.size() >= 2:
+					var sx := String(parts[0]).strip_edges()
+					var sy := String(parts[1]).strip_edges()
+					return Vector2(float(sx), float(sy))
+	return Vector2.ZERO
 
 func _on_speed_changed(mult: float) -> void:
 	Engine.time_scale = clampf(mult, 0.25, 4.0)

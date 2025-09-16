@@ -11,6 +11,9 @@ signal selected(tower_type: String)
 var tower_type: String
 
 func _ready() -> void:
+	var scaler = get_tree().root.get_node_or_null("UIScaler")
+	if scaler and scaler.has_method("apply_to"):
+		scaler.apply_to(self)
 	button.pressed.connect(_on_button_pressed)
 
 func set_data(p_tower_type: String, data: Dictionary) -> void:

@@ -35,6 +35,12 @@
 			"problemMatcher": []
 		},
 		{
+			"label": "godot: play (wrapper)",
+			"type": "shell",
+			"command": "scripts\\win\\play.cmd",
+			"problemMatcher": []
+		},
+		{
 			"label": "godot: export android debug",
 			"type": "shell",
 			"command": "cmd",
@@ -42,9 +48,13 @@
 				"/c",
 				"scripts\\win\\export-android-debug.cmd"
 			],
-			"problemMatcher": [
-				"$eslint - stylish"
-			],
+			"problemMatcher": ["$eslint-stylish"],
+			"group": "build"
+		},
+		{
+			"label": "set GODOT4 env var (session)",
+			"type": "shell",
+			"command": "setx GODOT4 \"C:\\Program Files\\Godot\\Godot_v4.4.1-stable_win64.exe\"",
 			"group": "build"
 		}
 	]

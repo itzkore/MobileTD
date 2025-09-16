@@ -32,5 +32,22 @@ text = "Guest Sign-In"
 [node name="Google" type="Button" parent="VBox/Buttons"]
 text = "Google Sign-In"
 
+[node name="Save" type="Button" parent="VBox/Buttons"]
+text = "Save"
+
+[node name="Load" type="Button" parent="VBox/Buttons"]
+text = "Load"
+
+[node name="Reset" type="Button" parent="VBox/Buttons"]
+text = "Reset Run"
+
+[node name="ClearSnapshot" type="Button" parent="VBox/Buttons"]
+text = "Clear Snapshot"
+
+[node name="Settings" type="VBoxContainer" parent="VBox"]
+
+[node name="AutoResume" type="CheckBox" parent="VBox/Settings"]
+text = "Auto Resume"
+
 [node name="Back" type="Button" parent="VBox"]
 text = "Back"

@@ -7,8 +7,15 @@ extends Control
 const DefsData = preload("res://scripts/data/Defs.gd")
 
 func _ready() -> void:
+	# Ensure Android back doesn't minimize unexpectedly; we'll handle it.
+	if OS.get_name() == "Android":
+		get_tree().set_auto_accept_quit(false)
 	_populate()
 	back_btn.pressed.connect(_on_back)
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		_on_back()
 
 func _populate() -> void:
 	_clear_children(towers_list)
@@ -28,6 +35,9 @@ func _clear_children(n: Node) -> void:
 		c.queue_free()
 
 func _on_back() -> void:
+	if is_instance_valid(back_btn):
+		back_btn.disabled = true
+		back_btn.text = "Loading..."
 	var scene := load("res://scenes/MainMenu.tscn") as PackedScene
 	if scene:
-		get_tree().change_scene_to_packed(scene)
+		get_tree().call_deferred("change_scene_to_packed", scene)

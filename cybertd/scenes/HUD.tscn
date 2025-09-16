@@ -1,6 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://b3c05dyel4022"]
 
-[ext_resource type="Script" uid="uid://b2dkckufaq0vy" path="res://scripts/HUD.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/HUD.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/ui/Ripple.gd" id="2_ripple"]
 
 [sub_resource type="StyleBoxFlat" id="1"]
 bg_color = Color(0.07, 0.08, 0.09, 0.92)
@@ -34,6 +35,8 @@ anchor_left = 0.02
 anchor_top = 0.92
 anchor_right = 0.98
 anchor_bottom = 0.99
+offset_left = 0.0
+offset_right = 0.0
 theme_override_styles/panel = SubResource("1")
 
 [node name="Inner" type="HBoxContainer" parent="HUDFrame"]
@@ -43,6 +46,7 @@ anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
+theme_override_constants/separation = 20
 
 [node name="LivesBottom" type="Label" parent="HUDFrame/Inner"]
 layout_mode = 2
@@ -59,6 +63,10 @@ size_flags_horizontal = 3
 [node name="StartWave" type="Button" parent="HUDFrame/Inner"]
 layout_mode = 2
 text = "Start Wave"
+[node name="Ripple" type="Control" parent="HUDFrame/Inner/StartWave"]
+layout_mode = 2
+script = ExtResource("2_ripple")
+visible = false
 
 [node name="EnemiesLeft" type="Label" parent="HUDFrame/Inner"]
 layout_mode = 2
@@ -77,16 +85,36 @@ size_flags_horizontal = 3
 layout_mode = 2
 text = "1x"
 theme_override_font_sizes/font_size = 24
+[node name="Ripple" type="Control" parent="HUDFrame/Inner/Speed1x"]
+layout_mode = 2
+script = ExtResource("2_ripple")
+visible = false
 
 [node name="Speed2x" type="Button" parent="HUDFrame/Inner"]
 layout_mode = 2
 text = "2x"
 theme_override_font_sizes/font_size = 24
+[node name="Ripple" type="Control" parent="HUDFrame/Inner/Speed2x"]
+layout_mode = 2
+script = ExtResource("2_ripple")
+visible = false
 
 [node name="Speed3x" type="Button" parent="HUDFrame/Inner"]
 layout_mode = 2
 text = "3x"
 theme_override_font_sizes/font_size = 24
+[node name="Ripple" type="Control" parent="HUDFrame/Inner/Speed3x"]
+layout_mode = 2
+script = ExtResource("2_ripple")
+visible = false
+
+[node name="Pause" type="Button" parent="HUDFrame/Inner"]
+layout_mode = 2
+text = "Pause"
+[node name="Ripple" type="Control" parent="HUDFrame/Inner/Pause"]
+layout_mode = 2
+script = ExtResource("2_ripple")
+visible = false
 
 [node name="State" type="ColorRect" parent="."]
 visible = false

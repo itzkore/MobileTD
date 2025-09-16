@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://unique_juggernaut_scene"]
 
-[ext_resource type="PackedScene" uid="uid://bjxfrblo6r0ak" path="res://scenes/Enemy.tscn" id="1_base_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/Enemy.tscn" id="1_base_enemy"]
 [ext_resource type="Script" path="res://scripts/EnemyJuggernaut.gd" id="2_juggernaut_script"]
 
 [node name="EnemyJuggernaut" instance=ExtResource("1_base_enemy")]

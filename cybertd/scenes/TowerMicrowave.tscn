@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3]
 
-[ext_resource type="PackedScene" uid="uid://b7y165606k46" path="res://scenes/Tower.tscn" id="1_base"]
+[ext_resource type="PackedScene" path="res://scenes/Tower.tscn" id="1_base"]
 [ext_resource type="Script" path="res://scripts/TowerMicrowave.gd" id="2_microwave"]
 [ext_resource type="Script" path="res://scripts/visuals/TurretVisualMicrowave.gd" id="3_microwave_visual"]
 
