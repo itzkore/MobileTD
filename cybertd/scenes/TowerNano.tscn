@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="PackedScene" uid="uid://b7y165606k46" path="res://scenes/Tower.tscn" id="1_base"]
 [ext_resource type="Script" path="res://scripts/TowerNano.gd" id="2_nano"]
+[ext_resource type="PackedScene" path="res://scenes/TowerNanoVisual.tscn" id="3_nano_visual"]
 
 [node name="TowerNano" instance=ExtResource("1_base")]
 script = ExtResource("2_nano")
@@ -10,7 +11,8 @@ turn_rate = 120.0
 fire_rate = 0.2
 build_cost = 40
 
-[node name="Visual" parent="Sprite2D" index="0"]
-custom_detail_color = Color(0.3, 0.9, 0.4, 1)
+[node name="Visual" parent="Sprite2D" index="0" instance=ExtResource("3_nano_visual")]
 base_radius = 18.0
-twin_barrels = false
+
+[node name="MuzzlePoint" type="Marker2D" parent="Sprite2D/Visual"]
+position = Vector2(20, 0)

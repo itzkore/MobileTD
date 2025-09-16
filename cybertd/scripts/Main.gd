@@ -23,7 +23,7 @@ const GRID_OFFSET: Vector2 = Vector2(0, 0)
 # Game state
 var wave_index: int = 0
 var lives: int = 20
-var gold: int = 20
+var gold: int = 50
 var wave_clear_bonus: int = 5 # Odměna za vyčištění vlny
 var enemies_to_spawn: int = 0
 var enemies_alive: int = 0
@@ -137,6 +137,10 @@ func _ready() -> void:
 	# Propojíme časovač s HUDem
 	if hud and "next_wave_timer" in hud:
 		hud.next_wave_timer = next_wave_timer
+
+	# Ensure UIEffectsLayer is discoverable by towers for range indicators
+	if is_instance_valid(ui_effects_layer):
+		ui_effects_layer.add_to_group("ui_effects_layer")
 		
 	# Start with panel hidden; show only on selection
 	if right_panel and right_panel.has_method("close_panel"):
@@ -214,8 +218,11 @@ func _on_spawn_timer_timeout() -> void:
 		var spawn_juggernaut = false
 		if juggernauts_in_wave > 0:
 			var total_enemies = soldiers_in_wave + juggernauts_in_wave
-			var spawn_interval = total_enemies / juggernauts_in_wave
-			if (total_enemies - enemies_to_spawn) % spawn_interval == 0:
+			# Compute a safe integer interval (at least 1) to avoid division/modulo issues
+			var spawn_interval: int = int(max(1.0, floor(float(total_enemies) / float(juggernauts_in_wave))))
+			if spawn_interval <= 0:
+				spawn_interval = 1
+			if ((total_enemies - enemies_to_spawn) % spawn_interval) == 0:
 				spawn_juggernaut = true
 
 		if spawn_juggernaut:
@@ -397,12 +404,29 @@ func _on_tower_selected(tower: Node2D) -> void:
 func _get_tower_stats(tower: Node) -> Dictionary:
 	if tower and tower.has_method("get_stats"):
 		return tower.get_stats()
+	# Fallback for generic Node2D towers using Tower.gd API
+	var dmg := 0
+	var fr := 1.0
+	var splash := 0.0
+	var rng := 0.0
+	var lvl := 1
+	if tower:
+		if "damage" in tower:
+			dmg = tower.damage
+		if "fire_rate" in tower:
+			fr = max(0.001, float(tower.fire_rate))
+		if "splash_radius" in tower:
+			splash = float(tower.splash_radius)
+		if tower.has_method("get_range_radius"):
+			rng = float(tower.get_range_radius())
+		if "level" in tower:
+			lvl = int(tower.level)
 	return {
-		"damage": tower.damage if tower and ("damage" in tower) else 0,
-		"cooldown": 1.0 / (tower.fire_rate if tower and ("fire_rate" in tower) else 1.0),
-		"splash": tower.splash_radius if tower and ("splash_radius" in tower) else 0.0,
-		"range": tower.get_range_radius() if tower and tower.has_method("get_range_radius") else 0.0,
-		"level": tower.level if tower and ("level" in tower) else 1,
+		"damage": dmg,
+		"cooldown": 1.0 / fr,
+		"splash": splash,
+		"range": rng,
+		"level": lvl,
 	}
 
 func clear_selection() -> void:

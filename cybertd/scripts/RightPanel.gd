@@ -5,11 +5,11 @@ signal upgrade_damage()
 signal sell_requested()
 
 @onready var title: Label = $VBoxContainer/Title
-@onready var build_content: VBoxContainer = $VBoxContainer/Content/BuildContent
-@onready var tower_content: VBoxContainer = $VBoxContainer/Content/TowerContent
-@onready var stats_label: Label = $VBoxContainer/Content/TowerContent/StatsLabel
-@onready var upgrade_button: Button = $VBoxContainer/Content/TowerContent/UpgradeButton
-@onready var sell_button: Button = $VBoxContainer/Content/TowerContent/SellButton
+@onready var build_content: VBoxContainer = $VBoxContainer/Scroll/Content/BuildContent
+@onready var tower_content: VBoxContainer = $VBoxContainer/Scroll/Content/TowerContent
+@onready var stats_label: Label = $VBoxContainer/Scroll/Content/TowerContent/StatsLabel
+@onready var upgrade_button: Button = $VBoxContainer/Scroll/Content/TowerContent/UpgradeButton
+@onready var sell_button: Button = $VBoxContainer/Scroll/Content/TowerContent/SellButton
 
 const TOWER_CARD_SCENE = preload("res://scenes/ui/TowerCard.tscn")
 const PANEL_WIDTH = 220.0
@@ -18,10 +18,21 @@ const ANIM_SPEED = 0.3
 var is_open: bool = false
 
 func _ready() -> void:
-	# Začínáme mimo obrazovku
-	position.x = get_viewport_rect().size.x
+	# Initialize hidden state (off-screen to the right):
+	# For right-anchored controls, visible uses negative right offset (margin),
+	# hidden uses +width (right edge PANEL_WIDTH px to the right of viewport),
+	# and left offset keeps width.
+	_set_panel_offsets(PANEL_WIDTH)
 	upgrade_button.pressed.connect(func(): upgrade_damage.emit())
 	sell_button.pressed.connect(func(): sell_requested.emit())
+
+func _set_panel_offsets(right_offset: float) -> void:
+	# For right-anchored control (anchor_left=anchor_right=1):
+	# pos_right = parent_width + offset_right
+	# Visible: offset_right = -20 (panel margin 20px from right), offset_left = -20 - width
+	# Hidden:  offset_right = 0   (panel fully off to the right),  offset_left = width
+	offset_right = right_offset
+	offset_left = right_offset - PANEL_WIDTH
 
 func open_build(p_tower_data: Dictionary) -> void:
 	title.text = "Build Tower"
@@ -72,6 +83,8 @@ func _animate_panel(p_show: bool) -> void: # Přejmenováno z 'show'
 		
 	is_open = p_show
 	var tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	var target_x = get_viewport_rect().size.x - (PANEL_WIDTH + 20) if p_show else get_viewport_rect().size.x
-	
-	tween.tween_property(self, "position:x", target_x, ANIM_SPEED)
+	var target_right := -20.0 if p_show else PANEL_WIDTH
+	var target_left := target_right - PANEL_WIDTH
+	# Animate both offsets in parallel for a proper slide
+	tween.tween_property(self, "offset_right", target_right, ANIM_SPEED)
+	tween.parallel().tween_property(self, "offset_left", target_left, ANIM_SPEED)

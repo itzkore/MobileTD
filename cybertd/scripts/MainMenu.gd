@@ -1,5 +1,9 @@
 extends Control
 
+const SCN_MAIN: PackedScene = preload("res://scenes/Main.tscn")
+const SCN_CODEX: PackedScene = preload("res://scenes/Codex.tscn")
+const SCN_PROFILE: PackedScene = preload("res://scenes/Profile.tscn")
+
 @onready var user_lbl: Label = $Header/UserLabel
 @onready var gold_lbl: Label = $Header/GoldLabel
 @onready var play_btn: Button = $Center/VBox/Play
@@ -25,19 +29,24 @@ func _refresh_header() -> void:
 	gold_lbl.text = "Gold: %d" % int(g.profile.get("gold", 0))
 
 func _on_play() -> void:
-	var scene := load("res://scenes/Main.tscn") as PackedScene
-	if scene:
-		get_tree().change_scene_to_packed(scene)
+	# Give quick visual feedback and try to switch scenes.
+	play_btn.disabled = true
+	play_btn.text = "Loading..."
+	var err := get_tree().change_scene_to_packed(SCN_MAIN)
+	if err != OK:
+		play_btn.disabled = false
+		play_btn.text = "Play"
+		OS.alert("Failed to load Main scene (error %d)." % err, "Load error")
 
 func _on_codex() -> void:
-	var scene := load("res://scenes/Codex.tscn") as PackedScene
-	if scene:
-		get_tree().change_scene_to_packed(scene)
+	var err := get_tree().change_scene_to_packed(SCN_CODEX)
+	if err != OK:
+		OS.alert("Failed to load Codex (error %d)." % err, "Load error")
 
 func _on_profile() -> void:
-	var scene := load("res://scenes/Profile.tscn") as PackedScene
-	if scene:
-		get_tree().change_scene_to_packed(scene)
+	var err := get_tree().change_scene_to_packed(SCN_PROFILE)
+	if err != OK:
+		OS.alert("Failed to load Profile (error %d)." % err, "Load error")
 
 func _on_quit() -> void:
 	get_tree().quit()

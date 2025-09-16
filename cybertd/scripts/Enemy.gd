@@ -7,6 +7,7 @@ signal died
 @export var max_health: int = 10
 @export var armor: int = 0
 @export var reward_gold: int = 2
+@export var damage_taken_mult: float = 1.0
 var health: int
 signal damaged(amount: int)
 
@@ -16,6 +17,7 @@ var last_pos: Vector2 = Vector2.ZERO
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 var debuffs: Array = []
+var _dot_accum: float = 0.0 # accumulates fractional DOT damage until it reaches 1
 
 func _ready() -> void:
 	health = max_health
@@ -68,12 +70,18 @@ func _update_animation() -> void:
 	else:
 		animated_sprite.play("walk_right")
 
+func get_visual_canvasitem() -> CanvasItem:
+	# Returns the drawable node used for visuals (for shaders/effects)
+	return animated_sprite
+
 func add_debuff(debuff) -> void:
 	for d in debuffs:
 		if d.get_script() == debuff.get_script():
 			d.time_elapsed = 0
 			return
 	debuffs.append(debuff)
+	if debuff and debuff.has_method("on_added"):
+		debuff.on_added()
 
 func _setup_animations() -> void:
 	var sprite_frames = animated_sprite.sprite_frames
@@ -91,30 +99,53 @@ func _setup_animations() -> void:
 	_create_animation_from_folder(sprite_frames, "walk_right",base_path + "east")
 
 func _create_animation_from_folder(sprite_frames: SpriteFrames, anim_name: String, folder_path: String) -> void:
+	# Avoid directory listing on exported PCK (Android). Instead, enumerate
+	# sequentially named frames: frame_000.png, frame_001.png, ... until missing.
 	sprite_frames.add_animation(anim_name)
 	sprite_frames.set_animation_loop(anim_name, true)
 	sprite_frames.set_animation_speed(anim_name, 7.2)
 
-	var dir = DirAccess.open(folder_path)
-	if not dir:
-		printerr("Animation Error: Could not open directory: ", folder_path)
-		return
-	
-	dir.list_dir_begin()
-	var file_name = dir.get_next()
-	while file_name != "":
-		if not dir.current_is_dir() and file_name.ends_with(".png"):
-			var texture = load(folder_path.path_join(file_name))
-			sprite_frames.add_frame(anim_name, texture)
-		file_name = dir.get_next()
+	var index := 0
+	var added := 0
+	while true:
+		var fname := "frame_%03d.png" % index
+		var res_path := folder_path.path_join(fname)
+		if ResourceLoader.exists(res_path):
+			var texture := load(res_path)
+			if texture:
+				sprite_frames.add_frame(anim_name, texture)
+				added += 1
+			index += 1
+		else:
+			break
+
+	if added == 0:
+		push_error("Animation Error: No frames found for '%s' in %s" % [anim_name, folder_path])
 
 func take_damage(dmg: int) -> void:
-	health -= dmg
-	damaged.emit(max(0, dmg))
+	var mod_amount: int = int(max(1.0, round(float(dmg) * max(0.0, damage_taken_mult))))
+	health -= mod_amount
+	damaged.emit(mod_amount)
 	if health <= 0:
 		died.emit()
 		queue_free()
 	else:
+		queue_redraw()
+
+# Applies damage-over-time without emitting the 'damaged' signal, and
+# safely accumulates fractional values across frames.
+func take_damage_silent(dmg: float) -> void:
+	if dmg <= 0.0:
+		return
+	_dot_accum += max(0.0, dmg) * max(0.0, damage_taken_mult)
+	var whole: int = int(floor(_dot_accum))
+	if whole >= 1:
+		health -= whole
+		_dot_accum -= float(whole)
+		if health <= 0:
+			died.emit()
+			queue_free()
+			return
 		queue_redraw()
 
 func reset_on_spawn(base_speed: float) -> void:
@@ -124,9 +155,13 @@ func reset_on_spawn(base_speed: float) -> void:
 func _draw() -> void:
 	if max_health <= 0:
 		return
-	var w := 28.0
-	var h := 5.0
-	var y := -42.0
+	var w := 30.0
+	var h := 6.0
+	var y := -46.0
 	var ratio: float = clamp(float(health) / float(max_health), 0.0, 1.0)
-	draw_rect(Rect2(Vector2(-w * 0.5, y), Vector2(w, h)), Color(0, 0, 0, 0.6))
+	# subtle border for clarity
+	draw_rect(Rect2(Vector2(-w * 0.5 - 1, y - 1), Vector2(w + 2, h + 2)), Color(0, 0, 0, 0.35))
+	# background
+	draw_rect(Rect2(Vector2(-w * 0.5, y), Vector2(w, h)), Color(0, 0, 0, 0.7))
+	# fill
 	draw_rect(Rect2(Vector2(-w * 0.5 + 1, y + 1), Vector2((w - 2) * ratio, h - 2)), Color(0.2, 1.0, 0.2, 1.0))

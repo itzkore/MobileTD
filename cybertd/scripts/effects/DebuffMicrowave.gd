@@ -7,28 +7,47 @@ var can_explode: bool = false
 
 func _init(p_target: Node2D, p_duration: float):
 	super._init(p_target, p_duration)
-	# Aplikujeme shader, pokud neexistuje
-	if not target.material:
-		var shader_mat = ShaderMaterial.new()
-		shader_mat.shader = load("res://assets/shaders/heat_haze.gdshader")
-		target.material = shader_mat
+	# Attach heat haze shader to the visual (AnimatedSprite2D) if available
+	var canvas := target
+	if target and target.has_method("get_visual_canvasitem"):
+		canvas = target.get_visual_canvasitem()
+	if canvas and canvas is CanvasItem:
+		var mat := canvas.material
+		if mat == null or not (mat is ShaderMaterial):
+			var shader := load("res://assets/shaders/heat_haze.gdshader")
+			if shader:
+				var shader_mat := ShaderMaterial.new()
+				shader_mat.shader = shader
+				canvas.material = shader_mat
 
 func apply_effect(delta: float):
-	# Poškození přes čas
-	target.take_damage(damage_per_second * delta)
+	# Poškození přes čas (tiché, bez spamování floating textu)
+	if target and target.has_method("take_damage_silent"):
+		target.take_damage_silent(damage_per_second * delta)
+	else:
+		# Fallback if silent method is missing
+		var amt := int(max(1.0, round(damage_per_second * delta)))
+		target.take_damage(amt)
 	
 	# Postupné zpomalování
 	if speed_multiplier > (1.0 - max_slow):
-		speed_multiplier -= delta * 0.5 # Rychlost, jakou se zpomalení aplikuje
+		speed_multiplier = max(1.0 - max_slow, speed_multiplier - delta * 0.5) # Rychlost aplikace zpomalení
 	
 	# Vizuální efekt - tetelení
-	if target.material and target.material is ShaderMaterial:
-		target.material.set_shader_parameter("shake_amount", (1.0 - speed_multiplier) * 0.1)
+	var canvas := target
+	if target and target.has_method("get_visual_canvasitem"):
+		canvas = target.get_visual_canvasitem()
+	if canvas and canvas is CanvasItem and canvas.material and canvas.material is ShaderMaterial:
+		canvas.material.set_shader_parameter("shake_amount", (1.0 - speed_multiplier) * 0.1)
+
 
 func on_remove():
 	# Uklidíme vizuální efekt
-	if target.material and target.material is ShaderMaterial:
-		target.material.set_shader_parameter("shake_amount", 0.0)
+	var canvas := target
+	if target and target.has_method("get_visual_canvasitem"):
+		canvas = target.get_visual_canvasitem()
+	if canvas and canvas is CanvasItem and canvas.material and canvas.material is ShaderMaterial:
+		canvas.material.set_shader_parameter("shake_amount", 0.0)
 	
 	if can_explode and target.health <= 0:
 		# Exploze při smrti

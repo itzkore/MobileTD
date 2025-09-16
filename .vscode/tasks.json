@@ -12,7 +12,10 @@
 			"label": "godot: import",
 			"type": "shell",
 			"command": "cmd",
-			"args": ["/c","call scripts\\win\\find-godot4.cmd && \"%GODOT_EXE%\" --headless --path cybertd --import"],
+			"args": [
+				"/c",
+				"call scripts\\win\\find-godot4.cmd && \"%GODOT_EXE%\" --headless --path cybertd --import"
+			],
 			"problemMatcher": []
 		},
 		{
@@ -25,8 +28,24 @@
 			"label": "godot: play",
 			"type": "shell",
 			"command": "cmd",
-			"args": ["/c","call scripts\\win\\find-godot4.cmd && \"%GODOT_EXE%\" --path cybertd"],
+			"args": [
+				"/c",
+				"call scripts\\win\\find-godot4.cmd && \"%GODOT_EXE%\" --path cybertd"
+			],
 			"problemMatcher": []
+		},
+		{
+			"label": "godot: export android debug",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"scripts\\win\\export-android-debug.cmd"
+			],
+			"problemMatcher": [
+				"$eslint - stylish"
+			],
+			"group": "build"
 		}
 	]
 }

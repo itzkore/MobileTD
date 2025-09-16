@@ -34,3 +34,26 @@ func _setup_juggernaut_animations() -> void:
 	_create_animation_from_folder(sprite_frames, "walk_left", base_path + "west")
 	_create_animation_from_folder(sprite_frames, "walk_up",   base_path + "north")
 	_create_animation_from_folder(sprite_frames, "walk_right",base_path + "east")
+
+func _create_animation_from_folder(sprite_frames: SpriteFrames, anim_name: String, folder_path: String) -> void:
+	# Reuse the same Android-friendly loader used in Enemy.gd: enumerate frame_XXX.png
+	sprite_frames.add_animation(anim_name)
+	sprite_frames.set_animation_loop(anim_name, true)
+	sprite_frames.set_animation_speed(anim_name, 6.5)
+
+	var index := 0
+	var added := 0
+	while true:
+		var fname := "frame_%03d.png" % index
+		var res_path := folder_path.path_join(fname)
+		if ResourceLoader.exists(res_path):
+			var texture := load(res_path)
+			if texture:
+				sprite_frames.add_frame(anim_name, texture)
+				added += 1
+			index += 1
+		else:
+			break
+
+	if added == 0:
+		push_error("Juggernaut Animation Error: No frames for '%s' in %s" % [anim_name, folder_path])

@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="PackedScene" uid="uid://b7y165606k46" path="res://scenes/Tower.tscn" id="1_base"]
 [ext_resource type="Script" path="res://scripts/TowerMicrowave.gd" id="2_microwave"]
+[ext_resource type="Script" path="res://scripts/visuals/TurretVisualMicrowave.gd" id="3_microwave_visual"]
 
 [node name="TowerMicrowave" instance=ExtResource("1_base")]
 script = ExtResource("2_microwave")
@@ -10,8 +11,11 @@ turn_rate = 200.0
 build_cost = 25
 
 [node name="Visual" parent="Sprite2D" index="0"]
-script = preload("res://scripts/visuals/TurretVisualMicrowave.gd")
+script = ExtResource("3_microwave_visual")
 custom_detail_color = Color(0.2, 0.8, 0.9, 1)
 barrel_length = 20.0
 barrel_width = 15.0
 twin_barrels = false
+
+[node name="MuzzlePoint" type="Marker2D" parent="Sprite2D/Visual"]
+position = Vector2(18, 0)

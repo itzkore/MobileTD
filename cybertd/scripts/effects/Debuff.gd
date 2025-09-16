@@ -21,3 +21,11 @@ func apply_effect(_delta: float):
 func on_remove():
 	# Tato metoda bude přepsána, pokud je potřeba něco uklidit
 	pass
+
+func on_added() -> void:
+	# Volitelný hook při přidání na cíl
+	pass
+
+func on_target_died() -> void:
+	# Volitelný hook při smrti cíle (pro přesměrování/spršku atd.)
+	pass
